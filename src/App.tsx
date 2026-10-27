@@ -10,6 +10,7 @@ const SignIn = lazy(() => import('./pages/SignIn').then((module) => ({ default: 
 const SignUp = lazy(() => import('./pages/SignUp').then((module) => ({ default: module.SignUp })));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then((module) => ({ default: module.ForgotPassword })));
 const Onboarding = lazy(() => import('./pages/Onboarding').then((module) => ({ default: module.Onboarding })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then((module) => ({ default: module.Dashboard })));
 const Feed = lazy(() => import('./pages/Feed').then((module) => ({ default: module.Feed })));
 const Discover = lazy(() => import('./pages/Discover').then((module) => ({ default: module.Discover })));
 const Recommendations = lazy(() => import('./pages/Recommendations').then((module) => ({ default: module.Recommendations })));
@@ -20,11 +21,13 @@ const ConnectionPaths = lazy(() => import('./pages/ConnectionPaths').then((modul
 const SavedProfiles = lazy(() => import('./pages/SavedProfiles').then((module) => ({ default: module.SavedProfiles })));
 const Notifications = lazy(() => import('./pages/Notifications').then((module) => ({ default: module.Notifications })));
 const Insights = lazy(() => import('./pages/Insights').then((module) => ({ default: module.Insights })));
+const BFSVisualizer = lazy(() => import('./pages/BFSVisualizer').then((module) => ({ default: module.BFSVisualizer })));
 const MutualFriends = lazy(() => import('./pages/MutualFriends').then((module) => ({ default: module.MutualFriends })));
 const Analytics = lazy(() => import('./pages/Analytics').then((module) => ({ default: module.Analytics })));
 const ProfileSettings = lazy(() => import('./pages/ProfileSettings').then((module) => ({ default: module.ProfileSettings })));
 const PrivacySettings = lazy(() => import('./pages/PrivacySettings').then((module) => ({ default: module.PrivacySettings })));
 const ProfileView = lazy(() => import('./pages/ProfileView').then((module) => ({ default: module.ProfileView })));
+const RuleInspector = lazy(() => import('./pages/RuleInspector').then((module) => ({ default: module.RuleInspector })));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, profile, authError, loading } = useAuth();
@@ -69,6 +72,7 @@ function AppRoutes() {
         >
           <Route index element={<Feed />} />
           <Route path="feed" element={<Navigate to="/app" replace />} />
+          <Route path="overview" element={<Dashboard />} />
           <Route path="discover" element={<Discover />} />
           <Route path="recommendations" element={<Recommendations />} />
           <Route path="network" element={<MyNetwork />} />
@@ -78,10 +82,12 @@ function AppRoutes() {
           <Route path="saved" element={<SavedProfiles />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="insights" element={<Insights />} />
+          <Route path="bfs" element={<BFSVisualizer />} />
           <Route path="mutual-friends" element={<MutualFriends />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<ProfileSettings />} />
           <Route path="privacy" element={<PrivacySettings />} />
+          <Route path="rules" element={<RuleInspector />} />
           <Route path="profile/:id" element={<ProfileView />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,33 +1,3 @@
-ALTER TABLE public.profiles
-  ALTER COLUMN visibility
-  SET DEFAULT '{"organization":true,"skills":true,"interests":true,"location":true,"connections":true}'::jsonb;
-
-UPDATE public.profiles
-SET visibility = visibility - 'education'
-WHERE visibility ? 'education';
-
-ALTER TABLE public.profiles
-  DROP COLUMN IF EXISTS education;
-
-DELETE FROM public.profile_interests AS pi
-USING public.interests AS i
-WHERE pi.interest_id = i.id
-  AND i.name IN ('Academic Writing', 'History', 'Language Learning', 'Physics', 'Research');
-
-DELETE FROM public.interests
-WHERE name IN ('Academic Writing', 'History', 'Language Learning', 'Physics', 'Research');
-
-UPDATE public.interests
-SET category = CASE
-  WHEN name = 'Entrepreneurship' THEN 'technology'
-  ELSE 'entertainment'
-END
-WHERE category IN ('education', 'research');
-
-UPDATE public.communities
-SET category = 'entertainment'
-WHERE category IN ('education', 'research');
-
 CREATE TABLE IF NOT EXISTS public.stories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   author_id uuid NOT NULL CONSTRAINT stories_author_id_fkey REFERENCES public.profiles(id) ON DELETE CASCADE,

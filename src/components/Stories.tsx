@@ -155,6 +155,7 @@ export function Stories() {
     group.stories.push(story);
     return result;
   }, []);
+  groups.forEach((group) => group.stories.sort((left, right) => left.created_at.localeCompare(right.created_at)));
   const ownStories = groups.find((group) => group.authorId === profile?.id);
   const otherGroups = groups.filter((group) => group.authorId !== profile?.id);
   const markStorySeen = useCallback((storyId: string) => {
@@ -394,7 +395,7 @@ function StoryViewer({
     }
 
     if (story.media_path) {
-      void supabase.storage.from(STORY_BUCKET).createSignedUrl(story.media_path, 120).then(({ data, error: urlError }) => {
+      void supabase.storage.from(STORY_BUCKET).createSignedUrl(story.media_path, 3600).then(({ data, error: urlError }) => {
         if (active && urlError) {
           setViewerError(getStoriesError(urlError));
           onError(getStoriesError(urlError));
