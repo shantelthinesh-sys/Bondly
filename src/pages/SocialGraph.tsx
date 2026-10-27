@@ -25,7 +25,7 @@ export function SocialGraph() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const network = await loadNetwork();
+      const network = await loadNetwork(profile?.id);
       const g = new NetworkGraph();
       for (const p of network.profiles) {
         g.addNode({ id: p.id, label: p.display_name, interests: [], skills: [] });
@@ -39,7 +39,7 @@ export function SocialGraph() {
       setAvailableInterests([...allInterests].sort());
       setLoading(false);
     })();
-  }, []);
+  }, [profile]);
 
   const { nodes, edges } = useMemo(() => {
     if (!graph || !profile) return { nodes: [], edges: [] };
@@ -214,7 +214,7 @@ export function SocialGraph() {
       <div className="grid lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2 p-0 overflow-hidden h-[500px]">
           {nodes.length === 0 ? (
-            <EmptyState icon={<Share2 size={28} />} title="No graph data" description="Load the demo network to see your graph." />
+            <EmptyState icon={<Share2 size={28} />} title="Your graph is getting started" description="Your real connections will appear here as you connect with other Bondly members." />
           ) : (
             <ReactFlow
               nodes={nodes}

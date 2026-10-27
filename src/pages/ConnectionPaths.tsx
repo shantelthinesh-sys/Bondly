@@ -18,7 +18,7 @@ export function ConnectionPaths() {
 
   useEffect(() => {
     (async () => {
-      const network = await loadNetwork();
+      const network = await loadNetwork(profile?.id);
       const g = new SocialGraph();
       for (const p of network.profiles) g.addNode({ id: p.id, label: p.display_name, interests: [], skills: [] });
       for (const c of network.connections) g.addEdge(c.user_a, c.user_b);

@@ -1,38 +1,38 @@
 import { Link } from 'react-router-dom';
 import {
   Sparkles, Users, Network, Shield, GitBranch,
-  ScanSearch, Brain, ArrowRight, CheckCircle2, Lock,
+  ScanSearch, ArrowRight, CheckCircle2, Lock,
   BookOpen, BarChart3,
 } from 'lucide-react';
 import { Logo, Button, Card } from '../components/ui';
 import { useAuth } from '../context/useAuth';
 
 const FEATURES = [
-  { icon: Sparkles, title: 'AI-Powered Recommendations', desc: 'Explainable scoring combining graph features, interests, and machine learning.' },
-  { icon: Users, title: 'Mutual Friend Discovery', desc: 'Find people through common neighbors and shared social circles.' },
+  { icon: Sparkles, title: 'Interest-first discovery', desc: 'Find real members who have chosen to share interests with you.' },
+  { icon: Users, title: 'Mutual Friend Discovery', desc: 'Explore shared connections from your real, accepted network.' },
   { icon: Network, title: 'Social Graph Visualization', desc: 'Explore your connections as an interactive graph with zoom, pan, and drag.' },
-  { icon: ScanSearch, title: 'Interest Matching', desc: 'Discover people who share your passions, skills, and educational background.' },
+  { icon: ScanSearch, title: 'Interest Matching', desc: 'See the interests both members have chosen to make discoverable.' },
   { icon: GitBranch, title: 'Shortest Connection Paths', desc: 'See the fewest friendship hops between you and anyone in your network.' },
-  { icon: Brain, title: 'Explainable AI', desc: 'Every recommendation shows exactly why it was suggested — no black boxes.' },
-  { icon: Shield, title: 'Privacy Controls', desc: 'You decide who can discover you, what fields are visible, and who you block.' },
+  { icon: Shield, title: 'Explainable compatibility', desc: 'Inspect the shared-interest and network signals behind each estimate.' },
+  { icon: Lock, title: 'Privacy preferences', desc: 'Control discoverability and profile fields through your account settings.' },
   { icon: BookOpen, title: 'Communities', desc: 'Join interest groups and meet people who share your enthusiasm.' },
 ];
 
 const STEPS = [
   { num: 1, title: 'Create your profile', desc: 'Add your interests, skills, education, and set your discovery preferences.' },
   { num: 2, title: 'Discover your social network', desc: 'See your connections visualized as an interactive graph.' },
-  { num: 3, title: 'Explore potential connections', desc: 'Browse AI-recommended people with compatibility scores and explanations.' },
+  { num: 3, title: 'Explore potential connections', desc: 'Browse real members with shared interests and transparent compatibility estimates.' },
   { num: 4, title: 'Understand why people are recommended', desc: 'Inspect the exact features — mutual friends, shared interests, graph proximity — driving each score.' },
   { num: 5, title: 'Connect with people who interest you', desc: 'Send requests, save profiles, and grow your network meaningfully.' },
 ];
 
-const AI_TECH = [
+const DISCOVERY_TECH = [
   { title: 'Graph Knowledge Representation', desc: 'Users are nodes, friendships are undirected edges. The graph is rebuilt from the database for every computation.' },
   { title: 'Breadth-First Search', desc: 'BFS discovers connections by distance — friends, then friends-of-friends, then their networks.' },
   { title: 'Common-Neighbor Analysis', desc: 'Mutual friends and Jaccard similarity measure how much two neighborhoods overlap.' },
-  { title: 'Rule-Based Reasoning', desc: 'A transparent, configurable scoring engine combines features with documented weights you can inspect.' },
-  { title: 'Logistic Regression ML', desc: 'A genuine binary classifier trained on synthetic data predicts connection likelihood with honest evaluation metrics.' },
-  { title: 'Feature Engineering', desc: 'Mutual friends, interest similarity, skill overlap, Jaccard index, graph proximity, and feedback signals.' },
+  { title: 'Interest-first matching', desc: 'Shared interests are the primary ranking signal. Candidates without shared discoverable interests are not recommended.' },
+  { title: 'Available profile signals', desc: 'Optional skills, mutual connections, graph overlap, and feedback are used only when present.' },
+  { title: 'Honest compatibility estimates', desc: 'The current scorer is deterministic. It does not claim trained AI, measured friendship outcomes, or a probability of success.' },
 ];
 
 export function Landing() {
@@ -48,7 +48,7 @@ export function Landing() {
           <div className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">Features</a>
             <a href="#how" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">How It Works</a>
-            <a href="#ai" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">AI Technology</a>
+            <a href="#discovery" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">How Discovery Works</a>
             <a href="#privacy" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">Privacy</a>
             {session ? (
               <Link to="/app"><Button size="sm">Dashboard</Button></Link>
@@ -73,12 +73,12 @@ export function Landing() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-fade-in">
-              <span className="badge-indigo mb-4">AI-Powered Social Discovery</span>
+              <span className="badge-indigo mb-4">Interest-first social discovery</span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-navy-900 leading-tight tracking-tight">
                 Your Next Great Connection Starts Here.
               </h1>
               <p className="mt-5 text-lg text-navy-600 leading-relaxed max-w-xl">
-                Discover people who share your interests, explore your social connections, and find meaningful friendships with explainable AI.
+                Discover real people who share your interests and explore the social connections you have chosen to make visible.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to={ctaLink}>
@@ -93,32 +93,15 @@ export function Landing() {
                 </a>
               </div>
               <div className="mt-8 flex items-center gap-6 text-sm text-muted">
-                <div className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-success-400" /> Graph-based recommendations</div>
-                <div className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-success-400" /> Explainable scoring</div>
+                <div className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-success-400" /> Shared interests first</div>
+                <div className="flex items-center gap-1.5"><CheckCircle2 size={16} className="text-success-400" /> Transparent estimates</div>
               </div>
             </div>
 
             {/* Interactive illustration */}
             <div className="relative animate-fade-in">
               <GraphIllustration />
-              <div className="absolute -bottom-4 -right-2 sm:right-4 max-w-xs">
-                <Card className="p-4 shadow-elevated">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-indigo-500 text-white flex items-center justify-center font-semibold text-lg">AM</div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-navy-800 text-sm">Aarav Mehta</p>
-                      <p className="text-xs text-muted">4 mutual friends · 3 shared interests</p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <div className="w-11 h-11 rounded-full border-2 border-success-400 flex items-center justify-center text-success-500 font-bold text-sm">87</div>
-                      <span className="text-[10px] text-muted mt-0.5">match</span>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-xs text-navy-600 bg-navy-50 rounded-lg p-2">
-                    You have 4 mutual friends and share 3 interests, including Artificial Intelligence and Chess.
-                  </p>
-                </Card>
-              </div>
+              <p className="mt-2 text-center text-xs text-muted">Illustrative network diagram — not live user data</p>
             </div>
           </div>
         </div>
@@ -127,20 +110,9 @@ export function Landing() {
       {/* Stats */}
       <section className="border-y border-navy-50 bg-navy-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <p className="text-center text-xs text-muted uppercase tracking-wider mb-6">Sample Demonstration Data</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[
-              { label: 'Demo users', value: '36' },
-              { label: 'Friendship edges', value: '70+' },
-              { label: 'Communities', value: '8' },
-              { label: 'Interest categories', value: '6' },
-            ].map((s) => (
-              <div key={s.label}>
-                <p className="text-3xl font-bold text-indigo-500">{s.value}</p>
-                <p className="text-sm text-muted mt-1">{s.label}</p>
-              </div>
-            ))}
-          </div>
+          <p className="text-center text-sm text-muted">
+            Member and connection counts will reflect real activity as people join Bondly.
+          </p>
         </div>
       </section>
 
@@ -187,17 +159,17 @@ export function Landing() {
       </section>
 
       {/* AI Technology */}
-      <section id="ai" className="py-16 lg:py-24">
+      <section id="discovery" className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="badge-success mb-3">Under the hood</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-navy-900">AI Technology, Explained Simply</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-navy-900">How Discovery Works</h2>
             <p className="mt-3 text-navy-600 max-w-2xl mx-auto">
-              Bondly combines graph algorithms, feature engineering, rule-based reasoning, and machine learning — all visible and explainable.
+              Bondly currently uses deterministic graph calculations and shared interests. Ollama and conversational AI are planned, not yet available.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {AI_TECH.map((t) => (
+            {DISCOVERY_TECH.map((t) => (
               <Card key={t.title} className="p-5 border-l-4 border-l-indigo-400">
                 <h3 className="font-semibold text-navy-800">{t.title}</h3>
                 <p className="mt-2 text-sm text-muted leading-relaxed">{t.desc}</p>
@@ -213,9 +185,9 @@ export function Landing() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <Lock className="text-indigo-400 mb-4" size={32} />
-              <h2 className="text-3xl md:text-4xl font-bold text-white">Privacy First, Always</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-white">Privacy settings and safeguards</h2>
               <p className="mt-4 text-navy-100 leading-relaxed">
-                You control your visibility. Bondly never exposes your private information, and every recommendation respects your discovery settings.
+                You can control discoverability and profile visibility in settings. The current schema still needs a server-enforced field-level profile projection before private profile fields can be considered production-safe.
               </p>
               <div className="mt-6 space-y-3">
                 {[
@@ -234,9 +206,9 @@ export function Landing() {
             </div>
             <Card className="p-6 bg-white">
               <BarChart3 className="text-indigo-500 mb-3" />
-              <h3 className="font-semibold text-navy-800">Row-Level Security</h3>
+              <h3 className="font-semibold text-navy-800">Supabase Row-Level Security</h3>
               <p className="mt-2 text-sm text-muted">
-                Every database table enforces ownership policies server-side. Hiding a component in the UI is never the only barrier — the database itself rejects unauthorized access.
+                Policies restrict account-owned changes and discovery data. Field-level visibility for profile reads remains a required security task before production use.
               </p>
             </Card>
           </div>
@@ -262,7 +234,7 @@ export function Landing() {
       <footer className="border-t border-navy-50 py-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Logo size="sm" />
-          <p className="text-xs text-muted">Bondly AI — A university micro-project demonstrating graph algorithms and explainable AI.</p>
+          <p className="text-xs text-muted">Bondly AI — Interest-first social discovery for genuine friendships.</p>
         </div>
       </footer>
     </div>

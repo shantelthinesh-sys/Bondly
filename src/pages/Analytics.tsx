@@ -24,70 +24,58 @@ export function Analytics() {
     degreeDist: [] as { range: string; count: number }[],
     interestDist: [] as { name: string; value: number }[],
     degreeCentrality: [] as { name: string; value: number }[],
-    scoreDist: [] as { range: string; count: number }[],
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const network = await loadNetwork();
-      const g = new SocialGraph();
-      for (const p of network.profiles) g.addNode({ id: p.id, label: p.display_name, interests: [], skills: [] });
-      for (const c of network.connections) g.addEdge(c.user_a, c.user_b);
-      const nodes = g.nodeCount();
-      const edges = g.edgeCount();
-      const avgDegree = g.averageDegree();
-      const isolated = g.isolatedNodes().length;
+      try {
+        setError(null);
+        const network = await loadNetwork(profile?.id);
+        const g = new SocialGraph();
+        for (const p of network.profiles) g.addNode({ id: p.id, label: p.display_name, interests: [], skills: [] });
+        for (const c of network.connections) g.addEdge(c.user_a, c.user_b);
+        const nodes = g.nodeCount();
+        const edges = g.edgeCount();
+        const avgDegree = g.averageDegree();
+        const isolated = g.isolatedNodes().length;
 
-      // Degree distribution
-      const degreeCounts = new Map<number, number>();
-      for (const id of g.allNodes()) {
-        const deg = g.getNeighbors(id).size;
-        degreeCounts.set(deg, (degreeCounts.get(deg) ?? 0) + 1);
-      }
-      const degreeDist = [...degreeCounts.entries()]
-        .sort((a, b) => a[0] - b[0])
-        .slice(0, 10)
-        .map(([deg, count]) => ({ range: `${deg}`, count }));
-
-      // Interest distribution
-      const interestByCat = new Map<string, number>();
-      for (const interests of network.interestsByProfile.values()) {
-        for (const i of interests) {
-          interestByCat.set(i.category, (interestByCat.get(i.category) ?? 0) + 1);
+        const degreeCounts = new Map<number, number>();
+        for (const id of g.allNodes()) {
+          const degree = g.getNeighbors(id).size;
+          degreeCounts.set(degree, (degreeCounts.get(degree) ?? 0) + 1);
         }
+        const degreeDist = [...degreeCounts.entries()]
+          .sort((a, b) => a[0] - b[0])
+          .slice(0, 10)
+          .map(([degree, count]) => ({ range: `${degree}`, count }));
+
+        const interestByCategory = new Map<string, number>();
+        for (const interests of network.interestsByProfile.values()) {
+          for (const interest of interests) {
+            interestByCategory.set(interest.category, (interestByCategory.get(interest.category) ?? 0) + 1);
+          }
+        }
+        const interestDist = [...interestByCategory.entries()].map(([category, count]) => ({
+          name: INTEREST_CATEGORIES.find((item) => item.value === category)?.label ?? category,
+          value: count,
+        }));
+
+        const centrality = g.allNodes()
+          .map((id) => ({
+            name: network.profiles.find((person) => person.id === id)?.display_name ?? id.slice(0, 6),
+            value: g.degreeCentrality(id),
+          }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 10);
+
+        const secondDegree = profile ? g.secondDegreeCount(profile.id) : 0;
+        setStats({ nodes, edges, avgDegree, isolated, secondDegree, degreeDist, interestDist, degreeCentrality: centrality });
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : 'Unable to load network analytics.');
+      } finally {
+        setLoading(false);
       }
-      const interestDist = [...interestByCat.entries()].map(([cat, count]) => ({
-        name: INTEREST_CATEGORIES.find((c) => c.value === cat)?.label ?? cat,
-        value: count,
-      }));
-
-      // Degree centrality (top 10)
-      const centrality = g.allNodes()
-        .map((id) => ({ name: network.profiles.find((p) => p.id === id)?.display_name ?? id.slice(0, 6), value: g.degreeCentrality(id) }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 10);
-
-      // Score distribution (if current user has recs, use those; otherwise use degree as proxy)
-      const secondDegree = profile ? g.secondDegreeCount(profile.id) : 0;
-
-      // Recommendation score distribution (using degree-based proxy for demo)
-      const scoreBuckets = [0, 0, 0, 0, 0];
-      for (const id of g.allNodes()) {
-        if (id === profile?.id) continue;
-        const deg = g.getNeighbors(id).size;
-        const bucket = Math.min(4, Math.floor((deg / 10) * 5));
-        scoreBuckets[bucket]++;
-      }
-      const scoreDist = [
-        { range: '0-20', count: scoreBuckets[0] },
-        { range: '21-40', count: scoreBuckets[1] },
-        { range: '41-60', count: scoreBuckets[2] },
-        { range: '61-80', count: scoreBuckets[3] },
-        { range: '81-100', count: scoreBuckets[4] },
-      ];
-
-      setStats({ nodes, edges, avgDegree, isolated, secondDegree, degreeDist, interestDist, degreeCentrality: centrality, scoreDist });
-      setLoading(false);
     })();
   }, [profile]);
 
@@ -98,6 +86,7 @@ export function Analytics() {
   return (
     <div className="animate-fade-in">
       <PageHeader title="Network Analytics" subtitle="Real graph metrics computed from the persistent database." />
+      {error && <p role="alert" className="mb-4 text-sm text-error-400">{error}</p>}
 
       <div className="flex items-center gap-2 mb-4">
         <Badge color="success">Real data</Badge>
@@ -158,20 +147,6 @@ export function Analytics() {
           <p className="text-xs text-muted mt-2">Degree centrality = degree / (n-1). Higher means more connected.</p>
         </Card>
 
-        {/* Score distribution */}
-        <Card className="p-5">
-          <h3 className="font-semibold text-navy-900 mb-4">Compatibility Score Distribution</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={stats.scoreDist}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#EEEBFF" />
-              <XAxis dataKey="range" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Bar dataKey="count" fill="#E89914" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-          <p className="text-xs text-muted mt-2">Estimate based on graph degree. Real recommendation scores vary with features.</p>
-        </Card>
       </div>
 
       <Card className="p-5 mt-6">

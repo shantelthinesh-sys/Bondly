@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Search, Users, SlidersHorizontal } from 'lucide-react';
-import { Card, Spinner, EmptyState, PageHeader, Badge } from '../components/ui';
+import { Search, Users } from 'lucide-react';
+import { Card, Spinner, EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../context/useAuth';
 import { useRecommendationEngine } from '../hooks/useRecommendationEngine';
 import { RecommendationCard } from '../components/RecommendationCard';
@@ -50,7 +50,7 @@ export function Discover() {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Discover People" subtitle="Explore potential connections recommended by Bondly AI." />
+      <PageHeader title="Discover People" subtitle="Find real members who have chosen to share interests with you." />
 
       {/* Filters */}
       <Card className="p-4 mb-6">
@@ -91,17 +91,7 @@ export function Discover() {
         </div>
       </Card>
 
-      {/* Mode indicator */}
-      <div className="flex items-center gap-2 mb-4 text-sm">
-        <SlidersHorizontal size={14} className="text-muted" />
-        <span className="text-muted">Recommendation mode:</span>
-        <Badge color={state.mode === 'hybrid' ? 'indigo' : state.mode === 'ml' ? 'success' : 'navy'}>
-          {state.mode === 'hybrid' ? 'Hybrid (Rule + ML)' : state.mode === 'ml' ? 'ML Model' : 'Rule-Based Baseline'}
-        </Badge>
-        {state.mlTrained && (
-          <span className="text-xs text-muted">· ML model active</span>
-        )}
-      </div>
+      {state.error && <p role="alert" className="mb-4 text-sm text-error-400">{state.error}</p>}
 
       {/* Results */}
       {recs.length === 0 ? (
@@ -109,7 +99,15 @@ export function Discover() {
           <EmptyState
             icon={<Users size={32} />}
             title="No people found"
-            description={query ? "Try a different search or filter." : "Load demo data to see recommended connections."}
+            description={
+              query
+                ? 'Try a different search or filter.'
+                : (state.interestsByProfile.get(profile.id)?.length ?? 0) === 0
+                  ? 'Add interests to your profile to find members with shared interests.'
+                  : state.profiles.filter((member) => member.id !== profile.id).length === 0
+                    ? 'Bondly is waiting for more members to join and share their interests.'
+                    : 'No discoverable members currently share your interests. Check back as the community grows.'
+            }
           />
         </Card>
       ) : (

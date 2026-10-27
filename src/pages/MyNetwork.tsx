@@ -38,7 +38,7 @@ export function MyNetwork() {
       const friendIds = connections.map((c) => (c.user_a === uid ? c.user_b : c.user_a));
       let friendProfiles: Profile[] = [];
       if (friendIds.length > 0) {
-        const { data, error } = await supabase.from('profiles').select('*').in('id', friendIds);
+        const { data, error } = await supabase.from('profiles').select('*').in('id', friendIds).eq('is_demo', false);
         if (error) throw error;
         friendProfiles = (data ?? []) as Profile[];
       }
@@ -49,7 +49,7 @@ export function MyNetwork() {
       );
       const recentIds = sorted.slice(0, 5).map((c) => (c.user_a === uid ? c.user_b : c.user_a));
       if (recentIds.length > 0) {
-        const { data, error } = await supabase.from('profiles').select('*').in('id', recentIds);
+        const { data, error } = await supabase.from('profiles').select('*').in('id', recentIds).eq('is_demo', false);
         if (error) throw error;
         setRecent((data ?? []) as Profile[]);
       } else {
@@ -61,7 +61,12 @@ export function MyNetwork() {
 
       const connectedSet = new Set(friendIds);
       const sentIds = new Set(outgoingRequests.map((r) => r.receiver_id));
-      const { data: allProfiles, error } = await supabase.from('profiles').select('*').neq('id', uid).limit(30);
+      const { data: allProfiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('id', uid)
+        .eq('is_demo', false)
+        .limit(30);
       if (error) throw error;
       setSuggested(
         ((allProfiles ?? []) as Profile[])
@@ -240,9 +245,8 @@ export function MyNetwork() {
                 <div className="flex-1 min-w-0">
                   <Link to={`/app/profile/${p.id}`} className="text-sm font-medium text-navy-900 hover:text-indigo-600 truncate block">
                     {p.display_name}
-                    {p.is_demo && <span className="badge-muted ml-1 text-[10px]">demo</span>}
                   </Link>
-                  <p className="text-xs text-muted truncate">{p.headline || p.organization}</p>
+                  <p className="text-xs text-muted truncate">{p.headline || (p.visibility.organization ? p.organization : '')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 mt-3">

@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { Check, ArrowRight, ArrowLeft, Camera, MapPin, GraduationCap, Building, Heart, Wrench, Eye, CheckCircle2, Loader2 } from 'lucide-react';
+import { Check, ArrowRight, ArrowLeft, Camera, MapPin, GraduationCap, Building, Heart, Wrench, Eye, CheckCircle2, Loader2, Plus } from 'lucide-react';
 import { Logo, Button, Avatar, Card } from '../components/ui';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabase';
 import { INTEREST_CATALOG, SKILL_CATALOG, INTEREST_CATEGORIES, avatarFor } from '../lib/catalog';
 import { ensureInterest, ensureSkill } from '../lib/data';
-import { seedDemoData } from '../lib/seed';
 
 export function Onboarding() {
   const { profile, session, refreshProfile, updateProfile } = useAuth();
@@ -27,7 +26,7 @@ export function Onboarding() {
   const [customSkill, setCustomSkill] = useState('');
   const [discoveryEnabled, setDiscoveryEnabled] = useState(true);
   const [appearInRecs, setAppearInRecs] = useState(true);
-  const [seedingDemo, setSeedingDemo] = useState(false);
+  const [customInterest, setCustomInterest] = useState('');
 
   const totalSteps = 5;
   const progress = (step / totalSteps) * 100;
@@ -62,18 +61,6 @@ export function Onboarding() {
     setSelectedSkills((prev) => prev.filter((s) => s !== name));
   };
 
-  const handleSeedDemo = async () => {
-    setSeedingDemo(true);
-    setFormError(null);
-    try {
-      await seedDemoData();
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Unable to load the demo network.');
-    } finally {
-      setSeedingDemo(false);
-    }
-  };
-
   const finish = async () => {
     if (!session) return;
     setLoading(true);
@@ -83,7 +70,7 @@ export function Onboarding() {
         const interestIds: string[] = [];
         for (const name of selectedInterests) {
           const seed = INTEREST_CATALOG.find((i) => i.name === name);
-          const id = await ensureInterest(name, seed?.category ?? 'technology');
+          const id = await ensureInterest(name, seed?.category ?? 'entertainment');
           if (id) interestIds.push(id);
         }
         if (interestIds.length > 0) {
@@ -110,7 +97,6 @@ export function Onboarding() {
         }
       }
 
-      await seedDemoData();
       const { error } = await updateProfile({
         display_name: displayName.trim(),
         bio,
@@ -121,7 +107,7 @@ export function Onboarding() {
         headline: bio.split('\n')[0].slice(0, 80),
         discovery_enabled: discoveryEnabled && appearInRecs,
         onboarding_completed: true,
-        visibility: { education: true, skills: true, interests: true, location: true, connections: true },
+        visibility: { education: true, organization: true, skills: true, interests: true, location: true, connections: true },
       });
       if (error) throw new Error(error);
 
@@ -163,7 +149,19 @@ export function Onboarding() {
             />
           )}
           {step === 2 && (
-            <Step2 selected={selectedInterests} toggle={toggleInterest} />
+            <Step2
+              selected={selectedInterests}
+              toggle={toggleInterest}
+              customInterest={customInterest}
+              setCustomInterest={setCustomInterest}
+              addCustomInterest={() => {
+                const value = customInterest.trim();
+                if (value && !selectedInterests.includes(value)) {
+                  setSelectedInterests((previous) => [...previous, value]);
+                }
+                setCustomInterest('');
+              }}
+            />
           )}
           {step === 3 && (
             <Step3
@@ -192,8 +190,6 @@ export function Onboarding() {
               selectedInterests={selectedInterests}
               selectedSkills={selectedSkills}
               discoveryEnabled={discoveryEnabled}
-              onSeedDemo={handleSeedDemo}
-              seedingDemo={seedingDemo}
             />
           )}
 
@@ -326,7 +322,20 @@ function Step1(props: Step1Props) {
   );
 }
 
-function Step2({ selected, toggle }: { selected: string[]; toggle: (n: string) => void }) {
+function Step2({
+  selected,
+  toggle,
+  customInterest,
+  setCustomInterest,
+  addCustomInterest,
+}: {
+  selected: string[];
+  toggle: (n: string) => void;
+  customInterest: string;
+  setCustomInterest: (value: string) => void;
+  addCustomInterest: () => void;
+}) {
+  const catalogNames = new Set(INTEREST_CATALOG.map((interest) => interest.name));
   return (
     <div className="animate-fade-in">
       <h2 className="text-xl font-bold text-navy-900 mb-1">Pick your interests</h2>
@@ -357,6 +366,46 @@ function Step2({ selected, toggle }: { selected: string[]; toggle: (n: string) =
           </div>
         </div>
       ))}
+      {selected.some((name) => !catalogNames.has(name)) && (
+        <div className="mb-4">
+          <h3 className="mb-2 text-sm font-semibold text-navy-700">Your interests</h3>
+          <div className="flex flex-wrap gap-2">
+            {selected.filter((name) => !catalogNames.has(name)).map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => toggle(name)}
+                className="rounded-full bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white"
+                aria-label={`Remove ${name}`}
+              >
+                {name} <span aria-hidden="true">×</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="mt-4">
+        <label htmlFor="custom-interest" className="text-sm font-semibold text-navy-700">Add another interest</label>
+        <div className="flex gap-2 mt-2">
+          <input
+            id="custom-interest"
+            value={customInterest}
+            onChange={(event) => setCustomInterest(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                addCustomInterest();
+              }
+            }}
+            className="input-field"
+            maxLength={60}
+            placeholder="e.g. pottery, K-pop, birdwatching"
+          />
+          <Button type="button" variant="secondary" onClick={addCustomInterest} disabled={!customInterest.trim()}>
+            <Plus size={14} /> Add
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -488,8 +537,6 @@ interface Step5Props {
   selectedInterests: string[];
   selectedSkills: string[];
   discoveryEnabled: boolean;
-  onSeedDemo: () => void;
-  seedingDemo: boolean;
 }
 
 function Step5(props: Step5Props) {
@@ -530,15 +577,9 @@ function Step5(props: Step5Props) {
         </div>
       </Card>
 
-      <div className="mt-4 p-4 bg-indigo-50 rounded-xl">
-        <p className="text-sm text-indigo-700">
-          When you finish, we'll load a demonstration network of 36 fictional users so you can explore Bondly immediately. You can connect with them to test the recommendation engine.
-        </p>
-        <Button variant="secondary" size="sm" className="mt-3" onClick={props.onSeedDemo} disabled={props.seedingDemo}>
-          {props.seedingDemo ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}
-          {props.seedingDemo ? 'Loading demo network...' : 'Load demo network now'}
-        </Button>
-      </div>
+      <p className="mt-4 rounded-xl bg-indigo-50 p-4 text-sm text-indigo-700">
+        Recommendations will appear as real members join Bondly and share discoverable interests. We never add fictional profiles to your network.
+      </p>
     </div>
   );
 }

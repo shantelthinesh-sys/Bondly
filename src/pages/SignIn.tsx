@@ -111,7 +111,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="relative z-10 flex flex-col justify-end p-12 text-white">
           <h2 className="text-3xl font-bold mb-3">Find Your People.</h2>
-          <p className="text-navy-100 max-w-sm">Discover meaningful connections powered by explainable AI and graph algorithms.</p>
+          <p className="text-navy-100 max-w-sm">Discover meaningful connections through shared interests and transparent graph algorithms.</p>
         </div>
       </div>
       <div className="flex-1 flex items-center justify-center p-6 bg-white">

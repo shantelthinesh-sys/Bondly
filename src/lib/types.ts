@@ -20,6 +20,7 @@ export interface Profile {
 
 export interface ProfileVisibility {
   education: boolean;
+  organization: boolean;
   skills: boolean;
   interests: boolean;
   location: boolean;
@@ -108,19 +109,6 @@ export interface UserBlock {
   created_at: string;
 }
 
-export interface ModelMetadata {
-  id: string;
-  model_name: string;
-  model_version: string;
-  dataset_type: 'synthetic' | 'real' | 'none';
-  training_example_count: number;
-  evaluation_metrics: Record<string, number>;
-  feature_importance: { feature: string; weight: number }[];
-  limitations: string;
-  is_active: boolean;
-  created_at: string;
-}
-
 export interface ProfileWithRelations extends Profile {
   interests: Interest[];
   skills: Skill[];
@@ -151,6 +139,10 @@ export interface FeatureVector {
   proximity_score: number;
   feedback_score: number;
   is_connected: boolean;
+  skills_available: boolean;
+  neighborhood_available: boolean;
+  proximity_available: boolean;
+  feedback_available: boolean;
 }
 
 export interface ScoreContribution {
@@ -167,10 +159,6 @@ export interface Recommendation {
   candidate_id: string;
   features: FeatureVector;
   score: number;
-  rule_score: number;
-  ml_probability: number | null;
-  hybrid_score: number;
-  mode: RecommendationMode;
   shared_interests: Interest[];
   shared_skills: Skill[];
   mutual_friend_count: number;
@@ -181,10 +169,7 @@ export interface Recommendation {
   feedback: FeedbackType | null;
 }
 
-export type RecommendationMode = 'rule_based' | 'ml' | 'hybrid';
-
 export interface RecommendationConfig {
-  mode: RecommendationMode;
   weights: {
     mutual_friends: number;
     interest_similarity: number;
@@ -193,22 +178,19 @@ export interface RecommendationConfig {
     proximity: number;
     feedback: number;
   };
-  hybrid_blend: number;
 }
 
 export const DEFAULT_WEIGHTS = {
-  mutual_friends: 0.30,
-  interest_similarity: 0.25,
-  skill_similarity: 0.15,
-  jaccard: 0.10,
-  proximity: 0.10,
-  feedback: 0.10,
+  mutual_friends: 0.10,
+  interest_similarity: 0.70,
+  skill_similarity: 0.05,
+  jaccard: 0.05,
+  proximity: 0.05,
+  feedback: 0.05,
 };
 
 export const DEFAULT_CONFIG: RecommendationConfig = {
-  mode: 'hybrid',
   weights: { ...DEFAULT_WEIGHTS },
-  hybrid_blend: 0.70,
 };
 
 export interface BFSStep {

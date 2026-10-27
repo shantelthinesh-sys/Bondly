@@ -4,7 +4,7 @@
 Builds the persistent foundation of the Bondly AI social discovery platform.
 
 ## 1. New Tables
-- `profiles`: public profile data for auth users and fictional demo users (display_name, bio, education, organization, location, avatar, visibility, discovery settings).
+- `profiles`: public profile data for registered auth users (display_name, bio, education, organization, location, avatar, visibility, discovery settings).
 - `interests`: catalog of interest topics grouped by category.
 - `profile_interests`: join table profiles↔interests.
 - `skills`: catalog of skills.
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   location_city text DEFAULT '',
   headline text DEFAULT '',
   is_demo boolean NOT NULL DEFAULT false,
-  visibility jsonb NOT NULL DEFAULT '{"education":true,"skills":true,"interests":true,"location":true,"connections":true}'::jsonb,
+  visibility jsonb NOT NULL DEFAULT '{"education":true,"organization":true,"skills":true,"interests":true,"location":true,"connections":true}'::jsonb,
   discovery_enabled boolean NOT NULL DEFAULT true,
   is_admin boolean NOT NULL DEFAULT false,
   onboarding_completed boolean NOT NULL DEFAULT false,
@@ -63,12 +63,13 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 GRANT SELECT, INSERT, UPDATE, DELETE ON profiles TO authenticated;
 
 DROP POLICY IF EXISTS "profiles_select_all" ON profiles;
-CREATE POLICY "profiles_select_all" ON profiles FOR SELECT TO authenticated USING (true);
+CREATE POLICY "profiles_select_all" ON profiles FOR SELECT TO authenticated
+  USING (auth.uid() = id OR (is_demo = false AND discovery_enabled = true));
 DROP POLICY IF EXISTS "profiles_insert_own" ON profiles;
 CREATE POLICY "profiles_insert_own" ON profiles FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = id OR (is_demo = true AND auth.uid() IS NOT NULL));
+  WITH CHECK (auth.uid() = id AND is_demo = false);
 DROP POLICY IF EXISTS "profiles_update_own" ON profiles;
-CREATE POLICY "profiles_update_own" ON profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+CREATE POLICY "profiles_update_own" ON profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id AND is_demo = false);
 DROP POLICY IF EXISTS "profiles_delete_own" ON profiles;
 CREATE POLICY "profiles_delete_own" ON profiles FOR DELETE TO authenticated USING (auth.uid() = id);
 
@@ -81,7 +82,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  DELETE FROM public.profiles WHERE id = OLD.id AND is_demo = false;
+  DELETE FROM public.profiles WHERE id = OLD.id;
   RETURN OLD;
 END;
 $$;
@@ -122,13 +123,18 @@ CREATE TABLE IF NOT EXISTS profile_interests (
 ALTER TABLE profile_interests ENABLE ROW LEVEL SECURITY;
 GRANT SELECT, INSERT, UPDATE, DELETE ON profile_interests TO authenticated;
 DROP POLICY IF EXISTS "profile_interests_select_all" ON profile_interests;
-CREATE POLICY "profile_interests_select_all" ON profile_interests FOR SELECT TO authenticated USING (true);
-DROP POLICY IF EXISTS "profile_interests_insert_own" ON profile_interests;
-CREATE POLICY "profile_interests_insert_own" ON profile_interests FOR INSERT TO authenticated
-  WITH CHECK (
+CREATE POLICY "profile_interests_select_all" ON profile_interests FOR SELECT TO authenticated
+  USING (
     auth.uid() = profile_id
-    OR EXISTS (SELECT 1 FROM profiles p WHERE p.id = profile_id AND p.is_demo = true)
+    OR EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = profile_id AND p.is_demo = false
+        AND p.discovery_enabled = true
+        AND p.visibility->>'interests' = 'true'
+    )
   );
+DROP POLICY IF EXISTS "profile_interests_insert_own" ON profile_interests;
+CREATE POLICY "profile_interests_insert_own" ON profile_interests FOR INSERT TO authenticated WITH CHECK (auth.uid() = profile_id);
 DROP POLICY IF EXISTS "profile_interests_delete_own" ON profile_interests;
 CREATE POLICY "profile_interests_delete_own" ON profile_interests FOR DELETE TO authenticated USING (auth.uid() = profile_id);
 
@@ -160,13 +166,18 @@ CREATE TABLE IF NOT EXISTS profile_skills (
 ALTER TABLE profile_skills ENABLE ROW LEVEL SECURITY;
 GRANT SELECT, INSERT, UPDATE, DELETE ON profile_skills TO authenticated;
 DROP POLICY IF EXISTS "profile_skills_select_all" ON profile_skills;
-CREATE POLICY "profile_skills_select_all" ON profile_skills FOR SELECT TO authenticated USING (true);
-DROP POLICY IF EXISTS "profile_skills_insert_own" ON profile_skills;
-CREATE POLICY "profile_skills_insert_own" ON profile_skills FOR INSERT TO authenticated
-  WITH CHECK (
+CREATE POLICY "profile_skills_select_all" ON profile_skills FOR SELECT TO authenticated
+  USING (
     auth.uid() = profile_id
-    OR EXISTS (SELECT 1 FROM profiles p WHERE p.id = profile_id AND p.is_demo = true)
+    OR EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = profile_id AND p.is_demo = false
+        AND p.discovery_enabled = true
+        AND p.visibility->>'skills' = 'true'
+    )
   );
+DROP POLICY IF EXISTS "profile_skills_insert_own" ON profile_skills;
+CREATE POLICY "profile_skills_insert_own" ON profile_skills FOR INSERT TO authenticated WITH CHECK (auth.uid() = profile_id);
 DROP POLICY IF EXISTS "profile_skills_delete_own" ON profile_skills;
 CREATE POLICY "profile_skills_delete_own" ON profile_skills FOR DELETE TO authenticated USING (auth.uid() = profile_id);
 
@@ -189,18 +200,23 @@ CREATE INDEX IF NOT EXISTS idx_connections_user_a ON connections (user_a);
 CREATE INDEX IF NOT EXISTS idx_connections_user_b ON connections (user_b);
 
 ALTER TABLE connections ENABLE ROW LEVEL SECURITY;
-GRANT SELECT, INSERT, DELETE ON connections TO authenticated;
+GRANT SELECT, DELETE ON connections TO authenticated;
 DROP POLICY IF EXISTS "connections_select_participant" ON connections;
-CREATE POLICY "connections_select_participant" ON connections FOR SELECT TO authenticated USING (true);
-DROP POLICY IF EXISTS "connections_insert_participant" ON connections;
-CREATE POLICY "connections_insert_participant" ON connections FOR INSERT TO authenticated
-  WITH CHECK (
-    EXISTS (
+CREATE POLICY "connections_select_participant" ON connections FOR SELECT TO authenticated
+  USING (
+    auth.uid() = user_a
+    OR auth.uid() = user_b
+    OR EXISTS (
       SELECT 1 FROM profiles a, profiles b
-      WHERE a.id = user_a AND a.is_demo = true
-        AND b.id = user_b AND b.is_demo = true
+      WHERE a.id = user_a AND a.is_demo = false
+        AND a.discovery_enabled = true
+        AND a.visibility->>'connections' = 'true'
+        AND b.id = user_b AND b.is_demo = false
+        AND b.discovery_enabled = true
+        AND b.visibility->>'connections' = 'true'
     )
   );
+DROP POLICY IF EXISTS "connections_insert_participant" ON connections;
 DROP POLICY IF EXISTS "connections_delete_participant" ON connections;
 CREATE POLICY "connections_delete_participant" ON connections FOR DELETE TO authenticated USING (auth.uid() = user_a OR auth.uid() = user_b);
 
@@ -256,10 +272,7 @@ DROP POLICY IF EXISTS "communities_select_all" ON communities;
 CREATE POLICY "communities_select_all" ON communities FOR SELECT TO authenticated USING (true);
 DROP POLICY IF EXISTS "communities_insert_any" ON communities;
 CREATE POLICY "communities_insert_any" ON communities FOR INSERT TO authenticated
-  WITH CHECK (
-    auth.uid() = created_by
-    OR EXISTS (SELECT 1 FROM profiles p WHERE p.id = created_by AND p.is_demo = true)
-  );
+  WITH CHECK (auth.uid() = created_by);
 CREATE INDEX IF NOT EXISTS idx_communities_category ON communities (category);
 
 CREATE TABLE IF NOT EXISTS community_memberships (
@@ -275,16 +288,7 @@ DROP POLICY IF EXISTS "cm_select_all" ON community_memberships;
 CREATE POLICY "cm_select_all" ON community_memberships FOR SELECT TO authenticated USING (true);
 DROP POLICY IF EXISTS "cm_insert_own" ON community_memberships;
 CREATE POLICY "cm_insert_own" ON community_memberships FOR INSERT TO authenticated
-  WITH CHECK (
-    auth.uid() = user_id
-    OR EXISTS (
-      SELECT 1
-      FROM profiles p
-      JOIN communities c ON c.id = community_id
-      JOIN profiles creator ON creator.id = c.created_by
-      WHERE p.id = user_id AND p.is_demo = true AND creator.is_demo = true
-    )
-  );
+  WITH CHECK (auth.uid() = user_id);
 DROP POLICY IF EXISTS "cm_delete_own" ON community_memberships;
 CREATE POLICY "cm_delete_own" ON community_memberships FOR DELETE TO authenticated USING (auth.uid() = user_id);
 

@@ -29,7 +29,7 @@ export function SavedProfiles() {
     if (data && data.length > 0) {
       const savedRows = data as SavedProfileRow[];
       const ids = savedRows.map((d) => d.saved_profile_id);
-      const { data: profiles } = await supabase.from('profiles').select('*').in('id', ids);
+      const { data: profiles } = await supabase.from('profiles').select('*').in('id', ids).eq('is_demo', false);
       const profileMap = new Map(
         ((profiles ?? []) as Profile[]).map((person) => [person.id, person]),
       );

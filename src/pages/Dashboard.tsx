@@ -40,7 +40,11 @@ export function Dashboard() {
       .map((c) => (c.user_a === uid ? c.user_b : c.user_a))
       .slice(0, 5);
     if (friendIds.length > 0) {
-      const { data: friendProfiles } = await supabase.from('profiles').select('*').in('id', friendIds);
+      const { data: friendProfiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', friendIds)
+        .eq('is_demo', false);
       setRecentConnections(friendProfiles ?? []);
     }
   };
@@ -63,6 +67,7 @@ export function Dashboard() {
         title={`Welcome back, ${profile.display_name.split(' ')[0]}!`}
         subtitle="Here's what's happening in your network."
       />
+      {state.error && <p role="alert" className="mb-4 text-sm text-error-400">{state.error}</p>}
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -86,7 +91,13 @@ export function Dashboard() {
               <EmptyState
                 icon={<Users size={32} />}
                 title="No recommendations yet"
-                description="Load the demo network or add interests to your profile to see recommendations."
+                description={
+                  interestCount === 0
+                    ? 'Add interests to your profile to find real members who share them.'
+                    : state.profiles.length <= 1
+                      ? 'Bondly is waiting for more members to join and share their interests.'
+                      : 'No discoverable members currently share your interests. Check back as the community grows.'
+                }
               />
             </Card>
           ) : (
@@ -142,7 +153,7 @@ export function Dashboard() {
                     <Avatar src={c.avatar_url} name={c.display_name} size="sm" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-navy-800 truncate">{c.display_name}</p>
-                      <p className="text-xs text-muted truncate">{c.headline || c.organization}</p>
+                      <p className="text-xs text-muted truncate">{c.headline || (c.visibility.organization ? c.organization : '')}</p>
                     </div>
                   </Link>
                 ))}
@@ -157,7 +168,7 @@ export function Dashboard() {
         <Card className="p-5 mt-6">
           <h2 className="text-lg font-semibold text-navy-900 mb-3">Why These Recommendations?</h2>
           <p className="text-sm text-muted mb-4">
-            Bondly's recommendation engine combines graph features and your preferences. Here's what drives your top picks:
+            Bondly's transparent recommendation score prioritizes shared interests and only uses profile information members have chosen to share:
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {topRecs[0].contributions.map((c) => (

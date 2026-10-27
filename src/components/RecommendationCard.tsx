@@ -93,10 +93,11 @@ export function RecommendationCard({ rec, compact = false }: { rec: Recommendati
                 <Link to={`/app/profile/${c.id}`}>
                   <h3 className="font-semibold text-navy-900 text-sm truncate hover:text-indigo-600 transition-colors">
                     {c.display_name}
-                    {c.is_demo && <span className="badge-muted ml-2 text-[10px]">demo</span>}
                   </h3>
                 </Link>
-                <p className="text-xs text-muted truncate">{c.headline || c.organization || c.education}</p>
+                <p className="text-xs text-muted truncate">
+                  {c.headline || (c.visibility.organization && c.organization) || (c.visibility.education && c.education) || ''}
+                </p>
               </div>
               <ScoreRing score={rec.score} size={48} />
             </div>
@@ -188,9 +189,7 @@ export function ExplainBreakdown({ rec }: { rec: Recommendation }) {
         <ScoreRing score={rec.score} size={56} />
         <div>
           <p className="font-semibold text-navy-900">{rec.candidate.display_name}</p>
-          <p className="text-xs text-muted">
-            {rec.mode === 'hybrid' ? 'Hybrid score (rule-based + ML)' : rec.mode === 'ml' ? 'ML prediction' : 'Rule-based score'}
-          </p>
+          <p className="text-xs text-muted">Estimated profile compatibility</p>
         </div>
       </div>
 
@@ -217,19 +216,6 @@ export function ExplainBreakdown({ rec }: { rec: Recommendation }) {
           ))}
         </div>
       </div>
-
-      {rec.ml_probability !== null && (
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <div className="bg-navy-50 rounded-xl p-3 text-center">
-            <p className="text-xs text-muted">Rule-based score</p>
-            <p className="text-lg font-bold text-navy-900">{rec.rule_score}/100</p>
-          </div>
-          <div className="bg-indigo-50 rounded-xl p-3 text-center">
-            <p className="text-xs text-muted">ML probability</p>
-            <p className="text-lg font-bold text-indigo-600">{rec.ml_probability}%</p>
-          </div>
-        </div>
-      )}
 
       {rec.triggered_rules.length > 0 && (
         <div>

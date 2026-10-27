@@ -18,9 +18,9 @@ interface ConnectionRequestRow {
 }
 
 /** Load the entire social network into in-memory maps for graph computation. */
-export async function loadNetwork() {
+export async function loadNetwork(userId?: string) {
   const [profilesRes, interestsRes, piRes, skillsRes, psRes, connectionsRes] = await Promise.all([
-    supabase.from('profiles').select('*'),
+    supabase.from('profiles').select('*').eq('is_demo', false),
     supabase.from('interests').select('*'),
     supabase.from('profile_interests').select('profile_id, interest_id'),
     supabase.from('skills').select('*'),
@@ -39,9 +39,17 @@ export async function loadNetwork() {
   if (loadError) throw loadError;
 
   const profiles = (profilesRes.data ?? []) as Profile[];
+  const profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
   const interests = (interestsRes.data ?? []) as Interest[];
   const skills = (skillsRes.data ?? []) as Skill[];
-  const connections = (connectionsRes.data ?? []) as Connection[];
+  const visibleProfileIds = new Set(
+    profiles
+      .filter((profile) => profile.id === userId || profile.visibility.connections)
+      .map((profile) => profile.id),
+  );
+  const connections = ((connectionsRes.data ?? []) as Connection[]).filter(
+    (connection) => visibleProfileIds.has(connection.user_a) && visibleProfileIds.has(connection.user_b),
+  );
 
   const interestsByProfile = new Map<string, Interest[]>();
   const skillsByProfile = new Map<string, Skill[]>();
@@ -50,12 +58,14 @@ export async function loadNetwork() {
   const skillMap = new Map(skills.map((s) => [s.id, s]));
 
   for (const row of piRes.data ?? []) {
+    if (row.profile_id !== userId && !profileMap.get(row.profile_id)?.visibility.interests) continue;
     const list = interestsByProfile.get(row.profile_id) ?? [];
     const interest = interestMap.get(row.interest_id);
     if (interest) list.push(interest);
     interestsByProfile.set(row.profile_id, list);
   }
   for (const row of psRes.data ?? []) {
+    if (row.profile_id !== userId && !profileMap.get(row.profile_id)?.visibility.skills) continue;
     const list = skillsByProfile.get(row.profile_id) ?? [];
     const skill = skillMap.get(row.skill_id);
     if (skill) list.push(skill);
