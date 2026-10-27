@@ -181,9 +181,8 @@ export function ProfileView() {
           )}
         </div>
         {person.bio && <p className="mt-6 text-sm leading-6 text-navy-700">{person.bio}</p>}
-        {(person.visibility.education && person.education) || (person.visibility.organization && person.organization) ? (
+        {person.visibility.organization && person.organization ? (
           <div className="mt-5 grid sm:grid-cols-2 gap-3 text-sm">
-            {person.visibility.education && person.education && <p><span className="text-muted">Education</span><br />{person.education}</p>}
             {person.visibility.organization && person.organization && <p><span className="text-muted">Organization</span><br />{person.organization}</p>}
           </div>
         ) : null}

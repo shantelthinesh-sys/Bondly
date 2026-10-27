@@ -1,38 +1,34 @@
 import { Link } from 'react-router-dom';
 import {
-  Sparkles, Users, Network, Shield, GitBranch,
-  ScanSearch, ArrowRight, CheckCircle2, Lock,
-  BookOpen, BarChart3,
+  Sparkles, Users, Shield, ArrowRight, CheckCircle2, Lock,
+  BarChart3, MessageCircle, Camera, UsersRound,
 } from 'lucide-react';
 import { Logo, Button, Card } from '../components/ui';
 import { useAuth } from '../context/useAuth';
 
 const FEATURES = [
-  { icon: Sparkles, title: 'Interest-first discovery', desc: 'Find real members who have chosen to share interests with you.' },
-  { icon: Users, title: 'Mutual Friend Discovery', desc: 'Explore shared connections from your real, accepted network.' },
-  { icon: Network, title: 'Social Graph Visualization', desc: 'Explore your connections as an interactive graph with zoom, pan, and drag.' },
-  { icon: ScanSearch, title: 'Interest Matching', desc: 'See the interests both members have chosen to make discoverable.' },
-  { icon: GitBranch, title: 'Shortest Connection Paths', desc: 'See the fewest friendship hops between you and anyone in your network.' },
-  { icon: Shield, title: 'Explainable compatibility', desc: 'Inspect the shared-interest and network signals behind each estimate.' },
-  { icon: Lock, title: 'Privacy preferences', desc: 'Control discoverability and profile fields through your account settings.' },
-  { icon: BookOpen, title: 'Communities', desc: 'Join interest groups and meet people who share your enthusiasm.' },
+  { icon: Sparkles, title: 'Interest-first discovery', desc: 'Meet real members through interests they choose to share.' },
+  { icon: Users, title: 'Friend connections', desc: 'Send and manage connection requests with other members.' },
+  { icon: MessageCircle, title: 'Community feed', desc: 'Post updates, react, comment, and choose who can see your posts.' },
+  { icon: Camera, title: '24-hour stories', desc: 'Share text, photos, and short videos with your community.' },
+  { icon: UsersRound, title: 'Interest communities', desc: 'Find groups centered on the hobbies and passions you enjoy.' },
+  { icon: Shield, title: 'Privacy controls', desc: 'Manage profile visibility, discovery, and your connections.' },
 ];
 
 const STEPS = [
-  { num: 1, title: 'Create your profile', desc: 'Add your interests, skills, education, and set your discovery preferences.' },
-  { num: 2, title: 'Discover your social network', desc: 'See your connections visualized as an interactive graph.' },
-  { num: 3, title: 'Explore potential connections', desc: 'Browse real members with shared interests and transparent compatibility estimates.' },
-  { num: 4, title: 'Understand why people are recommended', desc: 'Inspect the exact features — mutual friends, shared interests, graph proximity — driving each score.' },
-  { num: 5, title: 'Connect with people who interest you', desc: 'Send requests, save profiles, and grow your network meaningfully.' },
+  { num: 1, title: 'Create your profile', desc: 'Add your interests and hobbies, and choose your discovery preferences.' },
+  { num: 2, title: 'Choose your interests', desc: 'Tell Bondly what you enjoy so recommendations can focus on common ground.' },
+  { num: 3, title: 'Discover people', desc: 'Explore real members and see the shared interests behind each recommendation.' },
+  { num: 4, title: 'Build your circle', desc: 'Connect with people you would like to know better.' },
+  { num: 5, title: 'Share your moments', desc: 'Post updates and stories for your community.' },
 ];
 
 const DISCOVERY_TECH = [
-  { title: 'Graph Knowledge Representation', desc: 'Users are nodes, friendships are undirected edges. The graph is rebuilt from the database for every computation.' },
-  { title: 'Breadth-First Search', desc: 'BFS discovers connections by distance — friends, then friends-of-friends, then their networks.' },
-  { title: 'Common-Neighbor Analysis', desc: 'Mutual friends and Jaccard similarity measure how much two neighborhoods overlap.' },
-  { title: 'Interest-first matching', desc: 'Shared interests are the primary ranking signal. Candidates without shared discoverable interests are not recommended.' },
-  { title: 'Available profile signals', desc: 'Optional skills, mutual connections, graph overlap, and feedback are used only when present.' },
-  { title: 'Honest compatibility estimates', desc: 'The current scorer is deterministic. It does not claim trained AI, measured friendship outcomes, or a probability of success.' },
+  { title: 'Shared interests', desc: 'Recommendations prioritize interests that both members have chosen to share.' },
+  { title: 'Mutual connections', desc: 'Your existing network can help surface people connected to your circle.' },
+  { title: 'Clear explanations', desc: 'See the shared interests and connection signals behind a recommendation.' },
+  { title: 'No invented matches', desc: 'Suggestions are based on real member profiles, not fabricated demo accounts.' },
+  { title: 'You stay in control', desc: 'Manage discovery preferences and dismiss recommendations that are not a fit.' },
 ];
 
 export function Landing() {
@@ -48,10 +44,10 @@ export function Landing() {
           <div className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">Features</a>
             <a href="#how" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">How It Works</a>
-            <a href="#discovery" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">How Discovery Works</a>
+            <a href="#discovery" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">Friend discovery</a>
             <a href="#privacy" className="text-sm font-medium text-navy-600 hover:text-indigo-600 transition-colors">Privacy</a>
             {session ? (
-              <Link to="/app"><Button size="sm">Dashboard</Button></Link>
+              <Link to="/app"><Button size="sm">Open Bondly</Button></Link>
             ) : (
               <>
                 <Link to="/signin" className="text-sm font-semibold text-navy-700 hover:text-indigo-600">Sign In</Link>
@@ -60,7 +56,7 @@ export function Landing() {
             )}
           </div>
           <div className="md:hidden">
-            {session ? <Link to="/app"><Button size="sm">Dashboard</Button></Link> : <Link to="/signin"><Button size="sm">Sign In</Button></Link>}
+            {session ? <Link to="/app"><Button size="sm">Open Bondly</Button></Link> : <Link to="/signin"><Button size="sm">Sign In</Button></Link>}
           </div>
         </div>
       </nav>
@@ -75,20 +71,20 @@ export function Landing() {
             <div className="animate-fade-in">
               <span className="badge-indigo mb-4">Interest-first social discovery</span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-navy-900 leading-tight tracking-tight">
-                Your Next Great Connection Starts Here.
+                Your People. Your Moments. Your Bond.
               </h1>
               <p className="mt-5 text-lg text-navy-600 leading-relaxed max-w-xl">
-                Discover real people who share your interests and explore the social connections you have chosen to make visible.
+                Find people who share your interests, build your circle, and share moments with your community.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to={ctaLink}>
                   <Button className="px-6 py-3 text-base">
-                    Start Discovering <ArrowRight size={18} />
+                    Join Bondly <ArrowRight size={18} />
                   </Button>
                 </Link>
                 <a href="#how">
                   <Button variant="secondary" className="px-6 py-3 text-base">
-                    Explore How It Works
+                    See how it works
                   </Button>
                 </a>
               </div>
@@ -142,7 +138,7 @@ export function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-navy-900">Key Features</h2>
-            <p className="mt-3 text-navy-600 max-w-2xl mx-auto">Everything you need to discover, understand, and grow your social network.</p>
+            <p className="mt-3 text-navy-600 max-w-2xl mx-auto">Meet people, share moments, and grow real friendships around what you love.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {FEATURES.map((f) => (
@@ -158,14 +154,14 @@ export function Landing() {
         </div>
       </section>
 
-      {/* AI Technology */}
+      {/* Friend discovery */}
       <section id="discovery" className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="badge-success mb-3">Under the hood</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-navy-900">How Discovery Works</h2>
+            <span className="badge-success mb-3">Your circle, your way</span>
+            <h2 className="text-3xl md:text-4xl font-bold text-navy-900">Friend discovery with real common ground</h2>
             <p className="mt-3 text-navy-600 max-w-2xl mx-auto">
-              Bondly currently uses deterministic graph calculations and shared interests. Ollama and conversational AI are planned, not yet available.
+              Recommendations use real member details and explainable signals, with shared interests at the center.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -219,7 +215,7 @@ export function Landing() {
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-navy-900">Your community is closer than you think.</h2>
-          <p className="mt-3 text-navy-600">Join Bondly AI and discover connections that matter.</p>
+          <p className="mt-3 text-navy-600">Join Bondly and discover connections that matter.</p>
           <div className="mt-8">
             <Link to={ctaLink}>
               <Button className="px-8 py-3.5 text-base">
@@ -234,7 +230,7 @@ export function Landing() {
       <footer className="border-t border-navy-50 py-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Logo size="sm" />
-          <p className="text-xs text-muted">Bondly AI — Interest-first social discovery for genuine friendships.</p>
+          <p className="text-xs text-muted">Bondly — Your People. Your Moments. Your Bond.</p>
         </div>
       </footer>
     </div>

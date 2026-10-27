@@ -1,11 +1,10 @@
-// Domain types for Bondly AI
+// Domain types for Bondly.
 
 export interface Profile {
   id: string;
   display_name: string;
   bio: string;
   avatar_url: string | null;
-  education: string;
   organization: string;
   location_city: string;
   headline: string;
@@ -19,7 +18,6 @@ export interface Profile {
 }
 
 export interface ProfileVisibility {
-  education: boolean;
   organization: boolean;
   skills: boolean;
   interests: boolean;
@@ -37,9 +35,7 @@ export type InterestCategory =
   | 'technology'
   | 'arts'
   | 'sports'
-  | 'education'
-  | 'entertainment'
-  | 'research';
+  | 'entertainment';
 
 export interface Skill {
   id: string;

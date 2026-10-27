@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Search, BookOpen, Users, Plus, Check } from 'lucide-react';
+import { Search, Users, Plus, Check } from 'lucide-react';
 import { Card, Button, Spinner, EmptyState, PageHeader, Badge, Modal } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/useAuth';
@@ -69,14 +69,14 @@ export function Communities() {
       {loading ? (
         <div className="flex items-center justify-center h-48"><Spinner className="w-8 h-8" /></div>
       ) : filtered.length === 0 ? (
-        <Card><EmptyState icon={<BookOpen size={28} />} title="No communities found" /></Card>
+        <Card><EmptyState icon={<Users size={28} />} title="No communities found" /></Card>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((c) => (
             <Card key={c.id} className="p-5 hover:shadow-elevated transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
-                  <BookOpen size={18} />
+                  <Users size={18} />
                 </div>
                 <Badge color="navy">{c.category}</Badge>
               </div>
@@ -116,8 +116,6 @@ export function Communities() {
                 <option value="technology">Technology</option>
                 <option value="arts">Arts</option>
                 <option value="sports">Sports</option>
-                <option value="research">Research</option>
-                <option value="education">Education</option>
                 <option value="entertainment">Entertainment</option>
               </select>
             </div>

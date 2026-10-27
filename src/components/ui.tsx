@@ -13,7 +13,7 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
         <line x1="22" y1="6" x2="22" y2="22" stroke="#A99BF7" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
       <span className={`font-display font-bold ${text} text-navy-900 tracking-tight`}>
-        Bondly<span className="text-indigo-500"> AI</span>
+        Bondly
       </span>
     </div>
   );

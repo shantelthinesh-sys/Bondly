@@ -1,4 +1,4 @@
-// Curated catalog of interests and skills for onboarding.
+// Curated catalog of social interests and skills for onboarding.
 import type { InterestCategory } from './types';
 
 export interface InterestSeed {
@@ -32,16 +32,11 @@ export const INTEREST_CATALOG: InterestSeed[] = [
   { name: 'Hiking', category: 'sports' },
   { name: 'Yoga', category: 'sports' },
   { name: 'Cycling', category: 'sports' },
-  { name: 'Research', category: 'research' },
-  { name: 'Academic Writing', category: 'research' },
-  { name: 'Philosophy', category: 'research' },
-  { name: 'Physics', category: 'research' },
-  { name: 'Entrepreneurship', category: 'education' },
-  { name: 'Reading', category: 'education' },
-  { name: 'Language Learning', category: 'education' },
-  { name: 'History', category: 'education' },
-  { name: 'Books & Literature', category: 'education' },
-  { name: 'Volunteering', category: 'education' },
+  { name: 'Philosophy', category: 'entertainment' },
+  { name: 'Entrepreneurship', category: 'technology' },
+  { name: 'Reading', category: 'entertainment' },
+  { name: 'Books & Literature', category: 'entertainment' },
+  { name: 'Volunteering', category: 'entertainment' },
   { name: 'Gaming', category: 'entertainment' },
   { name: 'Board Games', category: 'entertainment' },
   { name: 'K-pop', category: 'entertainment' },
@@ -68,9 +63,7 @@ export const INTEREST_CATEGORIES: { value: InterestCategory; label: string; colo
   { value: 'entertainment', label: 'Entertainment', color: 'muted' },
   { value: 'arts', label: 'Arts & Creative', color: 'success' },
   { value: 'sports', label: 'Sports & Fitness', color: 'warning' },
-  { value: 'education', label: 'Education', color: 'error' },
   { value: 'technology', label: 'Technology', color: 'indigo' },
-  { value: 'research', label: 'Research & Science', color: 'navy' },
 ];
 
 export function avatarFor(name: string): string {

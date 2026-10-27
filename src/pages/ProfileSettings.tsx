@@ -8,7 +8,6 @@ export function ProfileSettings() {
   const [displayName, setDisplayName] = useState('');
   const [headline, setHeadline] = useState('');
   const [bio, setBio] = useState('');
-  const [education, setEducation] = useState('');
   const [organization, setOrganization] = useState('');
   const [locationCity, setLocationCity] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -20,7 +19,6 @@ export function ProfileSettings() {
     setDisplayName(profile.display_name);
     setHeadline(profile.headline);
     setBio(profile.bio);
-    setEducation(profile.education);
     setOrganization(profile.organization);
     setLocationCity(profile.location_city);
   }, [profile]);
@@ -35,7 +33,6 @@ export function ProfileSettings() {
         display_name: displayName.trim(),
         headline: headline.trim(),
         bio: bio.trim(),
-        education: education.trim(),
         organization: organization.trim(),
         location_city: locationCity.trim(),
       });
@@ -66,10 +63,6 @@ export function ProfileSettings() {
             <textarea maxLength={500} value={bio} onChange={(event) => setBio(event.target.value)} className="input-field mt-1 min-h-28 resize-y" />
           </label>
           <div className="grid sm:grid-cols-2 gap-4">
-            <label className="block text-sm font-medium text-navy-700">
-              Education
-              <input value={education} onChange={(event) => setEducation(event.target.value)} className="input-field mt-1" />
-            </label>
             <label className="block text-sm font-medium text-navy-700">
               Organization
               <input value={organization} onChange={(event) => setOrganization(event.target.value)} className="input-field mt-1" />

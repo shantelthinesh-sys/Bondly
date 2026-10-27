@@ -5,7 +5,6 @@ import { useAuth } from '../context/useAuth';
 import type { ProfileVisibility } from '../lib/types';
 
 const VISIBILITY_OPTIONS: { key: keyof ProfileVisibility; label: string }[] = [
-  { key: 'education', label: 'Education' },
   { key: 'organization', label: 'Organization' },
   { key: 'skills', label: 'Skills' },
   { key: 'interests', label: 'Interests' },
@@ -16,7 +15,7 @@ const VISIBILITY_OPTIONS: { key: keyof ProfileVisibility; label: string }[] = [
 export function PrivacySettings() {
   const { profile, updateProfile } = useAuth();
   const [visibility, setVisibility] = useState<ProfileVisibility>({
-    education: true, organization: true, skills: true, interests: true, location: true, connections: true,
+    organization: true, skills: true, interests: true, location: true, connections: true,
   });
   const [discoveryEnabled, setDiscoveryEnabled] = useState(true);
   const [message, setMessage] = useState<string | null>(null);

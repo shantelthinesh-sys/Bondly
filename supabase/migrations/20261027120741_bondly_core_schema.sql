@@ -1,10 +1,10 @@
 /*
-# Bondly AI — Core Schema
+# Bondly — Core Schema
 
-Builds the persistent foundation of the Bondly AI social discovery platform.
+Builds the persistent foundation of the Bondly social platform.
 
 ## 1. New Tables
-- `profiles`: public profile data for registered auth users (display_name, bio, education, organization, location, avatar, visibility, discovery settings).
+- `profiles`: public profile data for registered auth users (display_name, bio, organization, location, avatar, visibility, discovery settings).
 - `interests`: catalog of interest topics grouped by category.
 - `profile_interests`: join table profiles↔interests.
 - `skills`: catalog of skills.
@@ -46,12 +46,11 @@ CREATE TABLE IF NOT EXISTS profiles (
   display_name text NOT NULL,
   bio text DEFAULT '',
   avatar_url text,
-  education text DEFAULT '',
   organization text DEFAULT '',
   location_city text DEFAULT '',
   headline text DEFAULT '',
   is_demo boolean NOT NULL DEFAULT false,
-  visibility jsonb NOT NULL DEFAULT '{"education":true,"organization":true,"skills":true,"interests":true,"location":true,"connections":true}'::jsonb,
+  visibility jsonb NOT NULL DEFAULT '{"organization":true,"skills":true,"interests":true,"location":true,"connections":true}'::jsonb,
   discovery_enabled boolean NOT NULL DEFAULT true,
   is_admin boolean NOT NULL DEFAULT false,
   onboarding_completed boolean NOT NULL DEFAULT false,

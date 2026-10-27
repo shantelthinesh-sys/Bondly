@@ -1,30 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Sparkles, Network, Share2, BookOpen, MessageCircle,
+  House, Users, Sparkles, Network, Share2, UsersRound,
   Bell, Bookmark, BarChart3, Settings, Shield, Menu, X, LogOut,
-  Search, GitBranch, ScanSearch, ScrollText,
+  GitBranch, ScanSearch,
 } from 'lucide-react';
 import { Logo, Avatar } from './ui';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabase';
 
 const NAV = [
-  { to: '/app', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/app/feed', label: 'Community Feed', icon: MessageCircle },
+  { to: '/app', label: 'Home', icon: House, end: true },
   { to: '/app/discover', label: 'Discover People', icon: Users },
-  { to: '/app/recommendations', label: 'AI Recommendations', icon: Sparkles },
+  { to: '/app/recommendations', label: 'Friend Recommendations', icon: Sparkles },
   { to: '/app/network', label: 'My Network', icon: Network },
   { to: '/app/graph', label: 'Social Graph', icon: Share2 },
-  { to: '/app/communities', label: 'Communities', icon: BookOpen },
+  { to: '/app/communities', label: 'Communities', icon: UsersRound },
   { to: '/app/paths', label: 'Connection Paths', icon: GitBranch },
   { to: '/app/saved', label: 'Saved Profiles', icon: Bookmark },
   { to: '/app/notifications', label: 'Notifications', icon: Bell },
   { to: '/app/insights', label: 'Recommendation Insights', icon: ScanSearch },
-  { to: '/app/bfs', label: 'BFS Visualizer', icon: Search },
-  { to: '/app/mutual-friends', label: 'Mutual Friend Analyzer', icon: ScanSearch },
   { to: '/app/analytics', label: 'Network Analytics', icon: BarChart3 },
-  { to: '/app/rules', label: 'Rule Inspector', icon: ScrollText },
   { to: '/app/settings', label: 'Profile Settings', icon: Settings },
   { to: '/app/privacy', label: 'Privacy Settings', icon: Shield },
 ];

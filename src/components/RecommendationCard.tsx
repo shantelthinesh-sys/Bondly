@@ -96,7 +96,7 @@ export function RecommendationCard({ rec, compact = false }: { rec: Recommendati
                   </h3>
                 </Link>
                 <p className="text-xs text-muted truncate">
-                  {c.headline || (c.visibility.organization && c.organization) || (c.visibility.education && c.education) || ''}
+                  {c.headline || (c.visibility.organization && c.organization) || ''}
                 </p>
               </div>
               <ScoreRing score={rec.score} size={48} />

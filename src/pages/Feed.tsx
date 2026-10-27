@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MessageCircle, Send, ThumbsUp, Trash2, Users, Globe2, RefreshCw } from 'lucide-react';
 import { Avatar, Button, Card, EmptyState, PageHeader, Spinner } from '../components/ui';
+import { Stories } from '../components/Stories';
 import { useAuth } from '../context/useAuth';
 import { supabase, formatSupabaseError } from '../lib/supabase';
 
@@ -218,6 +219,8 @@ export function Feed() {
 
       {error && <div role="alert" className="mb-4 rounded-xl border border-error-100 bg-error-50 px-4 py-3 text-sm text-error-400">{error}</div>}
       {success && <div role="status" className="mb-4 rounded-xl border border-success-100 bg-success-50 px-4 py-3 text-sm text-success-500">{success}</div>}
+
+      <Stories />
 
       <Card className="mb-5 p-4 sm:p-5">
         <form onSubmit={createPost}>

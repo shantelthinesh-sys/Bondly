@@ -55,6 +55,11 @@
   .badge-muted { @apply badge bg-gray-100 text-muted; }
 }
 
+@keyframes story-progress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
 /* React Flow theme overrides */
 .react-flow__node {
   font-family: 'Inter', sans-serif;

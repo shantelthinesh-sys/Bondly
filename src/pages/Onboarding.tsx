@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { Check, ArrowRight, ArrowLeft, Camera, MapPin, GraduationCap, Building, Heart, Wrench, Eye, CheckCircle2, Loader2, Plus } from 'lucide-react';
+import { Check, ArrowRight, ArrowLeft, Camera, MapPin, Building, Heart, Wrench, Eye, CheckCircle2, Loader2, Plus } from 'lucide-react';
 import { Logo, Button, Avatar, Card } from '../components/ui';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabase';
@@ -17,7 +17,6 @@ export function Onboarding() {
   // Form state
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
-  const [education, setEducation] = useState(profile?.education ?? '');
   const [organization, setOrganization] = useState(profile?.organization ?? '');
   const [locationCity, setLocationCity] = useState(profile?.location_city ?? '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? '');
@@ -35,7 +34,6 @@ export function Onboarding() {
     if (profile) {
       setDisplayName(profile.display_name);
       setBio(profile.bio);
-      setEducation(profile.education);
       setOrganization(profile.organization);
       setLocationCity(profile.location_city);
       setAvatarUrl(profile.avatar_url ?? '');
@@ -100,14 +98,13 @@ export function Onboarding() {
       const { error } = await updateProfile({
         display_name: displayName.trim(),
         bio,
-        education,
         organization,
         location_city: locationCity,
         avatar_url: avatarUrl || avatarFor(displayName),
         headline: bio.split('\n')[0].slice(0, 80),
         discovery_enabled: discoveryEnabled && appearInRecs,
         onboarding_completed: true,
-        visibility: { education: true, organization: true, skills: true, interests: true, location: true, connections: true },
+        visibility: { organization: true, skills: true, interests: true, location: true, connections: true },
       });
       if (error) throw new Error(error);
 
@@ -142,7 +139,6 @@ export function Onboarding() {
             <Step1
               displayName={displayName} setDisplayName={setDisplayName}
               bio={bio} setBio={setBio}
-              education={education} setEducation={setEducation}
               organization={organization} setOrganization={setOrganization}
               locationCity={locationCity} setLocationCity={setLocationCity}
               avatarUrl={avatarUrl} setAvatarUrl={(u: string) => setAvatarUrl(u || avatarFor(displayName || 'User'))}
@@ -183,7 +179,6 @@ export function Onboarding() {
             <Step5
               displayName={displayName}
               bio={bio}
-              education={education}
               organization={organization}
               locationCity={locationCity}
               avatarUrl={avatarUrl}
@@ -224,8 +219,6 @@ interface Step1Props {
   setDisplayName: (value: string) => void;
   bio: string;
   setBio: (value: string) => void;
-  education: string;
-  setEducation: (value: string) => void;
   organization: string;
   setOrganization: (value: string) => void;
   locationCity: string;
@@ -276,22 +269,8 @@ function Step1(props: Step1Props) {
           />
           <p className="text-xs text-muted mt-1">{props.bio.length}/300</p>
         </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-navy-700">Education</label>
-            <div className="relative mt-1">
-              <GraduationCap size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-              <input
-                type="text"
-                value={props.education}
-                onChange={(e) => props.setEducation(e.target.value)}
-                className="input-field pl-9"
-                placeholder="BTech, University"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-navy-700">College / Organization</label>
+        <div>
+          <label className="text-sm font-medium text-navy-700">Organization (optional)</label>
             <div className="relative mt-1">
               <Building size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
               <input
@@ -302,7 +281,6 @@ function Step1(props: Step1Props) {
                 placeholder="Your org"
               />
             </div>
-          </div>
         </div>
         <div>
           <label className="text-sm font-medium text-navy-700">Location (optional, city-level)</label>
@@ -531,7 +509,6 @@ interface Step5Props {
   avatarUrl: string;
   displayName: string;
   organization: string;
-  education: string;
   locationCity: string;
   bio: string;
   selectedInterests: string[];
@@ -550,7 +527,7 @@ function Step5(props: Step5Props) {
           <Avatar src={props.avatarUrl} name={props.displayName} size="xl" />
           <div>
             <h3 className="text-lg font-bold text-navy-900">{props.displayName || 'Your name'}</h3>
-            <p className="text-sm text-muted">{props.organization || props.education || 'No org'}</p>
+            <p className="text-sm text-muted">{props.organization || 'No organization set'}</p>
             <p className="text-xs text-muted">{props.locationCity || 'Location not set'}</p>
           </div>
         </div>
