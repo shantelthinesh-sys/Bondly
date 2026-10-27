@@ -32,9 +32,14 @@ export function SignUp() {
       return;
     }
     setLoading(true);
-    const { error } = await signUp(email, password, fullName);
+    const { error, requiresEmailConfirmation } = await signUp(email, password, fullName);
     setLoading(false);
     if (error) setError(error);
+    else if (requiresEmailConfirmation) {
+      navigate('/signin', {
+        state: { message: 'Check your email to confirm your account, then sign in to continue.' },
+      });
+    }
     else navigate('/onboarding');
   };
 

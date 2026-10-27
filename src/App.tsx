@@ -29,7 +29,7 @@ const ProfileView = lazy(() => import('./pages/ProfileView').then((module) => ({
 const RuleInspector = lazy(() => import('./pages/RuleInspector').then((module) => ({ default: module.RuleInspector })));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, authError, loading } = useAuth();
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -38,6 +38,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!session) return <Navigate to="/signin" replace />;
+  if (authError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-canvas">
+        <div role="alert" className="max-w-xl rounded-2xl bg-white p-8 shadow-card">
+          <h1 className="text-xl font-bold text-navy-900">Bondly database setup is incomplete</h1>
+          <p className="mt-3 text-sm text-navy-600">{authError}</p>
+        </div>
+      </div>
+    );
+  }
   if (!profile || !profile.onboarding_completed) return <Navigate to="/onboarding" replace />;
   return <>{children}</>;
 }

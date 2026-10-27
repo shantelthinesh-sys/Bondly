@@ -113,12 +113,9 @@ export function ProfileView() {
         .maybeSingle();
       if (requestError) throw requestError;
       if (!request) throw new Error('This connection request is no longer available.');
-      const { error: updateError } = await supabase
-        .from('connection_requests').update({ status: 'accepted' }).eq('id', request.id);
-      if (updateError) throw updateError;
-      const [userA, userB] = currentProfile.id < id ? [currentProfile.id, id] : [id, currentProfile.id];
-      const { error: connectionError } = await supabase.from('connections').insert({ user_a: userA, user_b: userB });
-      if (connectionError) throw connectionError;
+      const { error: acceptError } = await supabase
+        .rpc('accept_connection_request', { request_id: request.id });
+      if (acceptError) throw acceptError;
       await load();
     } catch (acceptError) {
       setError(acceptError instanceof Error ? acceptError.message : 'Unable to accept this connection request.');

@@ -14,6 +14,7 @@ export function SignIn() {
   const [loading, setLoading] = useState(false);
 
   const from = (location.state as { from?: string } | null)?.from || '/app';
+  const notice = (location.state as { message?: string } | null)?.message;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +35,11 @@ export function SignIn() {
           <p className="mt-1 text-sm text-muted">Sign in to continue discovering connections.</p>
         </div>
 
+        {notice && (
+          <div role="status" className="text-sm text-success-400 bg-success-50 px-3 py-2.5 rounded-xl mb-4">
+            {notice}
+          </div>
+        )}
         {error && (
           <div role="alert" className="flex items-center gap-2 bg-error-50 text-error-400 text-sm px-3 py-2.5 rounded-xl mb-4">
             <AlertCircle size={16} /> {error}

@@ -16,3 +16,14 @@ export const supabase = createClient(
     },
   },
 );
+
+export function formatSupabaseError(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    const code = error.code;
+    if (code === 'PGRST205' || code === '42P01') {
+      return 'The Bondly database schema is missing. In the Supabase SQL Editor, run supabase/migrations/20261027120741_bondly_core_schema.sql, then reload the app.';
+    }
+  }
+  if (error instanceof Error) return error.message;
+  return 'An unexpected Supabase error occurred.';
+}

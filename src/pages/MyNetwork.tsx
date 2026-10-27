@@ -18,49 +18,61 @@ export function MyNetwork() {
   const [suggested, setSuggested] = useState<Profile[]>([]);
   const [recent, setRecent] = useState<Profile[]>([]);
   const [query, setQuery] = useState('');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(async (uid: string) => {
     setLoading(true);
-    const [connRes, inRes, outRes] = await Promise.all([
-      supabase.from('connections').select('*').or(`user_a.eq.${uid},user_b.eq.${uid}`),
-      supabase.from('connection_requests').select('*, sender:profiles!connection_requests_sender_id_fkey(*)').eq('receiver_id', uid).eq('status', 'pending'),
-      supabase.from('connection_requests').select('*, receiver:profiles!connection_requests_receiver_id_fkey(*)').eq('sender_id', uid).eq('status', 'pending'),
-    ]);
+    setActionError(null);
+    try {
+      const [connRes, inRes, outRes] = await Promise.all([
+        supabase.from('connections').select('*').or(`user_a.eq.${uid},user_b.eq.${uid}`),
+        supabase.from('connection_requests').select('*, sender:profiles!connection_requests_sender_id_fkey(*)').eq('receiver_id', uid).eq('status', 'pending'),
+        supabase.from('connection_requests').select('*, receiver:profiles!connection_requests_receiver_id_fkey(*)').eq('sender_id', uid).eq('status', 'pending'),
+      ]);
+      const requestError = connRes.error ?? inRes.error ?? outRes.error;
+      if (requestError) throw requestError;
 
-    const connections = (connRes.data ?? []) as Connection[];
-    const outgoingRequests = (outRes.data ?? []) as ConnectionRequest[];
-    const incomingRequests = (inRes.data ?? []) as (ConnectionRequest & { sender?: Profile })[];
-    const friendIds = connections.map((c) => (c.user_a === uid ? c.user_b : c.user_a));
-    let friendProfiles: Profile[] = [];
-    if (friendIds.length > 0) {
-      const { data } = await supabase.from('profiles').select('*').in('id', friendIds);
-      friendProfiles = (data ?? []) as Profile[];
+      const connections = (connRes.data ?? []) as Connection[];
+      const outgoingRequests = (outRes.data ?? []) as ConnectionRequest[];
+      const incomingRequests = (inRes.data ?? []) as (ConnectionRequest & { sender?: Profile })[];
+      const friendIds = connections.map((c) => (c.user_a === uid ? c.user_b : c.user_a));
+      let friendProfiles: Profile[] = [];
+      if (friendIds.length > 0) {
+        const { data, error } = await supabase.from('profiles').select('*').in('id', friendIds);
+        if (error) throw error;
+        friendProfiles = (data ?? []) as Profile[];
+      }
+      setConnections(friendProfiles);
+
+      const sorted = [...connections].sort((a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+      const recentIds = sorted.slice(0, 5).map((c) => (c.user_a === uid ? c.user_b : c.user_a));
+      if (recentIds.length > 0) {
+        const { data, error } = await supabase.from('profiles').select('*').in('id', recentIds);
+        if (error) throw error;
+        setRecent((data ?? []) as Profile[]);
+      } else {
+        setRecent([]);
+      }
+
+      setIncoming(incomingRequests);
+      setSent(outgoingRequests as (ConnectionRequest & { receiver?: Profile })[]);
+
+      const connectedSet = new Set(friendIds);
+      const sentIds = new Set(outgoingRequests.map((r) => r.receiver_id));
+      const { data: allProfiles, error } = await supabase.from('profiles').select('*').neq('id', uid).limit(30);
+      if (error) throw error;
+      setSuggested(
+        ((allProfiles ?? []) as Profile[])
+          .filter((p) => !connectedSet.has(p.id) && !sentIds.has(p.id))
+          .slice(0, 8),
+      );
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to load your network.');
+    } finally {
+      setLoading(false);
     }
-    setConnections(friendProfiles);
-
-    const sorted = [...connections].sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
-    const recentIds = sorted.slice(0, 5).map((c) => (c.user_a === uid ? c.user_b : c.user_a));
-    if (recentIds.length > 0) {
-      const { data } = await supabase.from('profiles').select('*').in('id', recentIds);
-      setRecent((data ?? []) as Profile[]);
-    }
-
-    setIncoming(incomingRequests);
-    setSent(outgoingRequests as (ConnectionRequest & { receiver?: Profile })[]);
-
-    // Suggested: demo users not already connected
-    const connectedSet = new Set(friendIds);
-    const sentIds = new Set(outgoingRequests.map((r) => r.receiver_id));
-    const { data: allProfiles } = await supabase.from('profiles').select('*').neq('id', uid).limit(30);
-    setSuggested(
-      ((allProfiles ?? []) as Profile[])
-        .filter((p) => !connectedSet.has(p.id) && !sentIds.has(p.id))
-        .slice(0, 8),
-    );
-
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -69,39 +81,58 @@ export function MyNetwork() {
 
   const acceptRequest = async (req: ConnectionRequest) => {
     if (!profile) return;
-    await supabase.from('connection_requests').update({ status: 'accepted' }).eq('id', req.id);
-    const [lo, hi] = req.sender_id < req.receiver_id ? [req.sender_id, req.receiver_id] : [req.receiver_id, req.sender_id];
-    await supabase.from('connections').insert({ user_a: lo, user_b: hi });
-    // Create notifications for both
-    await supabase.from('notifications').insert([
-      { user_id: profile.id, type: 'connection_accepted', title: 'Connection accepted', body: `You accepted ${req.sender_id === profile.id ? 'a request' : 'a connection request'}.`, related_id: req.id },
-      { user_id: req.sender_id, type: 'new_connection', title: 'Connection accepted!', body: 'Your connection request was accepted.', related_id: req.id },
-    ]);
-    if (profile) load(profile.id);
+    setActionError(null);
+    const { error } = await supabase.rpc('accept_connection_request', { request_id: req.id });
+    if (error) {
+      setActionError(error.message);
+      return;
+    }
+    await load(profile.id);
   };
 
   const declineRequest = async (req: ConnectionRequest) => {
-    await supabase.from('connection_requests').update({ status: 'declined' }).eq('id', req.id);
-    if (profile) load(profile.id);
+    if (!profile) return;
+    setActionError(null);
+    const { error } = await supabase.from('connection_requests').update({ status: 'declined' }).eq('id', req.id);
+    if (error) {
+      setActionError(error.message);
+      return;
+    }
+    await load(profile.id);
   };
 
   const cancelRequest = async (req: ConnectionRequest) => {
-    await supabase.from('connection_requests').delete().eq('id', req.id);
-    if (profile) load(profile.id);
+    if (!profile) return;
+    setActionError(null);
+    const { error } = await supabase.from('connection_requests').delete().eq('id', req.id);
+    if (error) {
+      setActionError(error.message);
+      return;
+    }
+    await load(profile.id);
   };
 
   const removeConnection = async (friendId: string) => {
     if (!profile) return;
     const [lo, hi] = profile.id < friendId ? [profile.id, friendId] : [friendId, profile.id];
-    await supabase.from('connections').delete().eq('user_a', lo).eq('user_b', hi);
-    if (profile) load(profile.id);
+    setActionError(null);
+    const { error } = await supabase.from('connections').delete().eq('user_a', lo).eq('user_b', hi);
+    if (error) {
+      setActionError(error.message);
+      return;
+    }
+    await load(profile.id);
   };
 
   const sendRequest = async (receiverId: string) => {
     if (!profile) return;
-    await supabase.from('connection_requests').insert({ sender_id: profile.id, receiver_id: receiverId, status: 'pending' });
-    await supabase.from('notifications').insert({ user_id: receiverId, type: 'connection_request', title: 'New connection request', body: `${profile.display_name} wants to connect.`, related_id: profile.id });
-    if (profile) load(profile.id);
+    setActionError(null);
+    const { error } = await supabase.from('connection_requests').insert({ sender_id: profile.id, receiver_id: receiverId, status: 'pending' });
+    if (error) {
+      setActionError(error.message);
+      return;
+    }
+    await load(profile.id);
   };
 
   const tabs: { key: Tab; label: string; count: number }[] = [
@@ -123,6 +154,7 @@ export function MyNetwork() {
 
   return (
     <div className="animate-fade-in">
+      {actionError && <p role="alert" className="mb-4 text-sm text-error-400">{actionError}</p>}
       <PageHeader title="My Network" subtitle="Manage your connections, requests, and suggestions." />
 
       {/* Tabs */}

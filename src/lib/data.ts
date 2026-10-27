@@ -98,7 +98,7 @@ export async function loadUserNetworkData(userId: string) {
   const connections = (connectionsRes.data ?? []) as Connection[];
   const sentRequests = (sentReqRes.data ?? []) as ConnectionRequestRow[];
   const receivedRequests = (recvReqRes.data ?? []) as ConnectionRequestRow[];
-  const blockedIds = new Set(blocks.map((b) => b.blocked_id));
+  const blockedIds = new Set(blocks.map((block) => block.blocked_id));
   const feedbackMap = new Map<string, FeedbackType>(
     feedback.map((f) => [f.candidate_id, f.feedback_type]),
   );

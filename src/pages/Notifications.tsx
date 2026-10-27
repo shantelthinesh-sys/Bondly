@@ -87,8 +87,8 @@ export function Notifications() {
                   <Check size={16} />
                 </button>
               )}
-              {n.related_id && n.type.includes('connection') && (
-                <Link to={`/app/profile/${n.related_id}`}>
+              {n.type.includes('connection') && (
+                <Link to="/app/network">
                   <Button variant="ghost" size="sm">View</Button>
                 </Link>
               )}

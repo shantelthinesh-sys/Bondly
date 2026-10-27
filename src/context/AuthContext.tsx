@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { formatSupabaseError, isSupabaseConfigured, supabase } from '../lib/supabase';
 import type { Profile } from '../lib/types';
 import { AuthContext } from './auth-context';
 import type { AuthContextValue, AuthProviderProps } from './auth-context';
@@ -8,6 +8,7 @@ import type { AuthContextValue, AuthProviderProps } from './auth-context';
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }).catch((error: unknown) => {
       if (active) {
         console.error('session initialization error', error);
+        setAuthError(formatSupabaseError(error));
         setProfile(null);
       }
     }).finally(() => {
@@ -65,6 +67,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       (async () => {
+        setAuthError(null);
         setSession(newSession);
         if (newSession?.user) {
           let currentProfile = await fetchProfile(newSession.user.id);
@@ -81,6 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setLoading(false);
       })().catch((error: unknown) => {
         console.error('auth state change error', error);
+        setAuthError(formatSupabaseError(error));
         setProfile(null);
         setLoading(false);
       });
@@ -105,9 +109,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (data.user && data.session) {
         await ensureProfile(data.user, fullName);
       }
-      return { error: null };
+      return { error: null, requiresEmailConfirmation: !data.session };
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unable to create your account.' };
+      return { error: formatSupabaseError(error) };
     }
   };
 
@@ -123,9 +127,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!currentProfile) currentProfile = await ensureProfile(data.user, 'New User');
         setProfile(currentProfile);
       }
+      setAuthError(null);
       return { error: null };
     } catch (error) {
-      return { error: error instanceof Error ? error.message : 'Unable to sign in.' };
+      const message = formatSupabaseError(error);
+      setAuthError(message);
+      return { error: message };
     }
   };
 
@@ -159,7 +166,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, profile, loading, signUp, signIn, signOut, refreshProfile, updateProfile }}
+      value={{ session, user: session?.user ?? null, profile, authError, loading, signUp, signIn, signOut, refreshProfile, updateProfile }}
     >
       {children}
     </AuthContext.Provider>

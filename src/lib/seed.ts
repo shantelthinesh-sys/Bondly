@@ -66,102 +66,117 @@ const COMMUNITIES: { name: string; description: string; category: string }[] = [
   { name: 'Research and Innovation', description: 'Cross-disciplinary research discussions and paper reading groups.', category: 'research' },
 ];
 
-export async function seedDemoData(): Promise<{ count: number; error: string | null }> {
+export async function seedDemoData(): Promise<number> {
   // Idempotency: skip if demo data already exists
-  const { count: existing } = await supabase
+  const { count: existing, error: existingError } = await supabase
     .from('profiles')
     .select('*', { count: 'exact', head: true })
     .eq('is_demo', true);
+  if (existingError) throw existingError;
   if ((existing ?? 0) > 0) {
-    return { count: existing ?? 0, error: null };
+    if (existing !== DEMO_USERS.length) {
+      throw new Error(`Demo data is incomplete (${existing} of ${DEMO_USERS.length} profiles).`);
+    }
+    return existing;
   }
 
-  // Ensure interest catalog
+  const interestNames = [...new Set([
+    ...INTEREST_CATALOG.map((interest) => interest.name),
+    ...DEMO_USERS.flatMap((user) => user.interests),
+  ])];
+  const { data: existingInterests, error: interestLoadError } = await supabase
+    .from('interests')
+    .select('id, name')
+    .in('name', interestNames);
+  if (interestLoadError) throw interestLoadError;
+
   const interestIds = new Map<string, string>();
-  for (const seed of INTEREST_CATALOG) {
-    const { data } = await supabase
+  for (const interest of existingInterests ?? []) {
+    interestIds.set(interest.name, interest.id);
+  }
+  const missingInterests = interestNames
+    .filter((name) => !interestIds.has(name))
+    .map((name) => ({
+      name,
+      category: INTEREST_CATALOG.find((interest) => interest.name === name)?.category ?? 'research',
+    }));
+  if (missingInterests.length > 0) {
+    const { data, error } = await supabase
       .from('interests')
-      .upsert({ name: seed.name, category: seed.category }, { onConflict: 'name' })
-      .select('id')
-      .maybeSingle();
-    if (data) interestIds.set(seed.name, data.id);
-  }
-  // Add custom interests used by demo users
-  for (const u of DEMO_USERS) {
-    for (const i of u.interests) {
-      if (!interestIds.has(i)) {
-        const { data } = await supabase
-          .from('interests')
-          .upsert({ name: i, category: 'technology' }, { onConflict: 'name' })
-          .select('id')
-          .maybeSingle();
-        if (data) interestIds.set(i, data.id);
-      }
-    }
+      .insert(missingInterests)
+      .select('id, name');
+    if (error) throw error;
+    for (const interest of data ?? []) interestIds.set(interest.name, interest.id);
   }
 
-  // Ensure skills catalog
+  const skillNames = [...new Set([
+    ...SKILL_CATALOG,
+    ...DEMO_USERS.flatMap((user) => user.skills),
+  ])];
+  const { data: existingSkills, error: skillLoadError } = await supabase
+    .from('skills')
+    .select('id, name')
+    .in('name', skillNames);
+  if (skillLoadError) throw skillLoadError;
+
   const skillIds = new Map<string, string>();
-  for (const s of [...SKILL_CATALOG, 'Music Production', 'Photography', 'Video Editing', 'Writing', 'Public Speaking', 'Leadership', 'Marketing', 'Finance', 'Statistics']) {
-    const { data } = await supabase
+  for (const skill of existingSkills ?? []) {
+    skillIds.set(skill.name, skill.id);
+  }
+  const missingSkills = skillNames
+    .filter((name) => !skillIds.has(name))
+    .map((name) => ({ name }));
+  if (missingSkills.length > 0) {
+    const { data, error } = await supabase
       .from('skills')
-      .upsert({ name: s }, { onConflict: 'name' })
-      .select('id')
-      .maybeSingle();
-    if (data) skillIds.set(s, data.id);
+      .insert(missingSkills)
+      .select('id, name');
+    if (error) throw error;
+    for (const skill of data ?? []) skillIds.set(skill.name, skill.id);
   }
 
-  // Create demo profiles (no auth users — these are demo-only profile rows)
-  const createdProfiles: { id: string; name: string }[] = [];
-  for (const u of DEMO_USERS) {
-    const id = crypto.randomUUID();
-    const { error } = await supabase.from('profiles').insert({
-      id,
-      display_name: u.name,
-      bio: u.bio,
-      education: u.education,
-      organization: u.organization,
-      location_city: u.city,
-      avatar_url: avatarFor(u.name),
-      headline: u.bio.split('.')[0],
-      is_demo: true,
-      discovery_enabled: true,
-      onboarding_completed: true,
+  const createdProfiles = DEMO_USERS.map((user) => ({
+    id: crypto.randomUUID(),
+    name: user.name,
+    user,
+  }));
+  const profileRows = createdProfiles.map(({ id, user }) => ({
+    id,
+    display_name: user.name,
+    bio: user.bio,
+    education: user.education,
+    organization: user.organization,
+    location_city: user.city,
+    avatar_url: avatarFor(user.name),
+    headline: user.bio.split('.')[0],
+    is_demo: true,
+    discovery_enabled: true,
+    onboarding_completed: true,
+  }));
+  const { error: profileInsertError } = await supabase.from('profiles').insert(profileRows);
+  if (profileInsertError) throw profileInsertError;
+
+  const interestRows = createdProfiles.flatMap(({ id, user }) => {
+    return user.interests.map((interestName) => {
+      const interestId = interestIds.get(interestName);
+      if (!interestId) throw new Error(`Missing seeded interest: ${interestName}`);
+      return { profile_id: id, interest_id: interestId };
     });
-    if (error) {
-      console.error('seed profile error', u.name, error.message);
-      continue;
-    }
-    createdProfiles.push({ id, name: u.name });
+  });
+  const { error: profileInterestError } = await supabase.from('profile_interests').insert(interestRows);
+  if (profileInterestError) throw profileInterestError;
 
-    // Link interests
-    const piRows = u.interests
-      .map((i) => interestIds.get(i))
-      .filter(Boolean)
-      .map((iid) => ({ profile_id: id, interest_id: iid! }));
-    if (piRows.length) await supabase.from('profile_interests').upsert(piRows, { onConflict: 'profile_id,interest_id' });
-
-    // Link skills
-    const psRows = u.skills
-      .map((s) => skillIds.get(s))
-      .filter(Boolean)
-      .map((sid) => ({ profile_id: id, skill_id: sid! }));
-    if (psRows.length) await supabase.from('profile_skills').upsert(psRows, { onConflict: 'profile_id,skill_id' });
-  }
+  const skillRows = createdProfiles.flatMap(({ id, user }) => {
+    return user.skills.map((skillName) => {
+      const skillId = skillIds.get(skillName);
+      if (!skillId) throw new Error(`Missing seeded skill: ${skillName}`);
+      return { profile_id: id, skill_id: skillId };
+    });
+  });
+  const { error: profileSkillError } = await supabase.from('profile_skills').insert(skillRows);
+  if (profileSkillError) throw profileSkillError;
 
   // Create friendships — a realistic-ish social graph
-  // Each user connects to a few others based on shared interests
-  const pairs = new Set<string>();
-  function addEdge(aId: string, bId: string) {
-    if (aId === bId) return;
-    const [lo, hi] = aId < bId ? [aId, bId] : [bId, aId];
-    const key = `${lo}|${hi}`;
-    if (pairs.has(key)) return;
-    pairs.add(key);
-    return supabase.from('connections').insert({ user_a: lo, user_b: hi });
-  }
-
-  // Deterministic edges
   const edges: [number, number][] = [
     [0, 1], [0, 2], [0, 3], [0, 4], [0, 5],
     [1, 6], [1, 7], [1, 8],
@@ -198,54 +213,36 @@ export async function seedDemoData(): Promise<{ count: number; error: string | n
     [32, 16], [32, 33],
     [33, 19], [33, 20],
     [34, 7], [34, 22],
-    // Om Raghavan (index 35) stays isolated
   ];
-
-  for (const [i, j] of edges) {
-    const aId = createdProfiles[i]?.id;
-    const bId = createdProfiles[j]?.id;
-    if (aId && bId) await addEdge(aId, bId);
-  }
-
-  // Create communities and memberships
-  for (const c of COMMUNITIES) {
-    const creatorId = createdProfiles[0]?.id;
-    const { data: comm } = await supabase
-      .from('communities')
-      .insert({ ...c, created_by: creatorId })
-      .select('id')
-      .maybeSingle();
-    if (!comm) continue;
-    // Add a few members
-    const memberIdxs = getRandomMembers(c.name, createdProfiles.length);
-    for (const idx of memberIdxs) {
-      const uid = createdProfiles[idx]?.id;
-      if (uid) {
-        await supabase
-          .from('community_memberships')
-          .upsert({ community_id: comm.id, user_id: uid }, { onConflict: 'community_id,user_id' });
-      }
-    }
-  }
-
-  // Add a couple of pending requests from demo users to each other (no, we can't —
-  // requests reference profiles not auth.users, and RLS requires sender = auth.uid.
-  // Demo users have no auth session so we can't create pending requests for them
-  // via the anon client. Skip — pending requests will come from real user interactions.)
-
-  // Seed model metadata
-  await supabase.from('model_metadata').insert({
-    model_name: 'Logistic Regression',
-    model_version: '0.1.0',
-    dataset_type: 'synthetic',
-    training_example_count: 0,
-    evaluation_metrics: {},
-    feature_importance: [],
-    limitations: 'Trained on synthetic labels generated from feature-based heuristics. Not representative of real friendship outcomes.',
-    is_active: true,
+  const connectionRows = [...new Set(edges.map(([first, second]) => {
+    const firstId = createdProfiles[first].id;
+    const secondId = createdProfiles[second].id;
+    return firstId < secondId ? `${firstId}|${secondId}` : `${secondId}|${firstId}`;
+  }))].map((pair) => {
+    const [user_a, user_b] = pair.split('|');
+    return { user_a, user_b };
   });
+  const { error: connectionError } = await supabase.from('connections').insert(connectionRows);
+  if (connectionError) throw connectionError;
 
-  return { count: createdProfiles.length, error: null };
+  const communities = COMMUNITIES.map((community) => ({
+    id: crypto.randomUUID(),
+    ...community,
+    created_by: createdProfiles[0].id,
+  }));
+  const { error: communityError } = await supabase.from('communities').insert(communities);
+  if (communityError) throw communityError;
+
+  const memberships = communities.flatMap((community) =>
+    getRandomMembers(community.name, createdProfiles.length).map((idx) => ({
+      community_id: community.id,
+      user_id: createdProfiles[idx].id,
+    })),
+  );
+  const { error: membershipError } = await supabase.from('community_memberships').insert(memberships);
+  if (membershipError) throw membershipError;
+
+  return createdProfiles.length;
 }
 
 function getRandomMembers(communityName: string, total: number): number[] {
