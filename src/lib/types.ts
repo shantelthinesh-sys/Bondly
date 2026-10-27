@@ -3,6 +3,7 @@
 export interface Profile {
   id: string;
   display_name: string;
+  username?: string;
   bio: string;
   avatar_url: string | null;
   organization: string;
@@ -11,6 +12,7 @@ export interface Profile {
   is_demo: boolean;
   visibility: ProfileVisibility;
   discovery_enabled: boolean;
+  message_privacy?: 'everyone' | 'connections';
   is_admin: boolean;
   onboarding_completed: boolean;
   created_at: string;

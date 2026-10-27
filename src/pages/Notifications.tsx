@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Check, CheckCheck, UserPlus, UserCheck, BookOpen, Sparkles } from 'lucide-react';
+import { Bell, Check, CheckCheck, UserPlus, UserCheck, BookOpen, Sparkles, MessageCircle } from 'lucide-react';
 import { Card, Button, Spinner, EmptyState, PageHeader } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/useAuth';
@@ -42,6 +42,7 @@ export function Notifications() {
     if (type.includes('accepted') || type.includes('new_connection')) return <UserCheck size={16} className="text-success-400" />;
     if (type.includes('community')) return <BookOpen size={16} className="text-warning-500" />;
     if (type.includes('recommendation')) return <Sparkles size={16} className="text-navy-500" />;
+    if (type.includes('message') || type.includes('call') || type.includes('group')) return <MessageCircle size={16} className="text-indigo-500" />;
     return <Bell size={16} className="text-muted" />;
   };
 
@@ -90,6 +91,11 @@ export function Notifications() {
               {n.type.includes('connection') && (
                 <Link to="/app/network">
                   <Button variant="ghost" size="sm">View</Button>
+                </Link>
+              )}
+              {(n.type === 'message' || n.type === 'missed_call' || n.type === 'group_added') && n.related_id && (
+                <Link to={`/app/messages/${n.related_id}`}>
+                  <Button variant="ghost" size="sm">Open chat</Button>
                 </Link>
               )}
             </Card>

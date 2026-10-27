@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button, Card, PageHeader } from '../components/ui';
 import { useAuth } from '../context/useAuth';
+import { supabase } from '../lib/supabase';
 
 export function ProfileSettings() {
   const { profile, updateProfile } = useAuth();
@@ -10,6 +11,7 @@ export function ProfileSettings() {
   const [bio, setBio] = useState('');
   const [organization, setOrganization] = useState('');
   const [locationCity, setLocationCity] = useState('');
+  const [messagePrivacy, setMessagePrivacy] = useState<'everyone' | 'connections'>('everyone');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -21,6 +23,7 @@ export function ProfileSettings() {
     setBio(profile.bio);
     setOrganization(profile.organization);
     setLocationCity(profile.location_city);
+    setMessagePrivacy(profile.message_privacy ?? 'everyone');
   }, [profile]);
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
@@ -37,7 +40,13 @@ export function ProfileSettings() {
         location_city: locationCity.trim(),
       });
       if (result.error) setError(result.error);
-      else setMessage('Your profile has been saved.');
+      else {
+        const { error: privacyError } = await supabase.from('profiles')
+          .update({ message_privacy: messagePrivacy })
+          .eq('id', profile?.id);
+        if (privacyError) setError(privacyError.message);
+        else setMessage('Your profile has been saved.');
+      }
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Unable to save your profile.');
     } finally {
@@ -71,6 +80,13 @@ export function ProfileSettings() {
           <label className="block text-sm font-medium text-navy-700">
             City
             <input value={locationCity} onChange={(event) => setLocationCity(event.target.value)} className="input-field mt-1" />
+          </label>
+          <label className="block text-sm font-medium text-navy-700">
+            Who can message you?
+            <select className="input-field mt-1" value={messagePrivacy} onChange={(event) => setMessagePrivacy(event.target.value as 'everyone' | 'connections')}>
+              <option value="everyone">Anyone in the discoverable community (message requests)</option>
+              <option value="connections">Connections only</option>
+            </select>
           </label>
           {error && <p role="alert" className="flex items-center gap-2 text-sm text-error-400"><AlertCircle size={16} />{error}</p>}
           {message && <p role="status" className="flex items-center gap-2 text-sm text-success-400"><CheckCircle2 size={16} />{message}</p>}

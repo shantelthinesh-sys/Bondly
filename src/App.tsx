@@ -12,6 +12,8 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then((module)
 const Onboarding = lazy(() => import('./pages/Onboarding').then((module) => ({ default: module.Onboarding })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((module) => ({ default: module.Dashboard })));
 const Feed = lazy(() => import('./pages/Feed').then((module) => ({ default: module.Feed })));
+const Messages = lazy(() => import('./pages/Messages').then((module) => ({ default: module.Messages })));
+const BondlyAI = lazy(() => import('./pages/BondlyAI').then((module) => ({ default: module.BondlyAI })));
 const Discover = lazy(() => import('./pages/Discover').then((module) => ({ default: module.Discover })));
 const Recommendations = lazy(() => import('./pages/Recommendations').then((module) => ({ default: module.Recommendations })));
 const MyNetwork = lazy(() => import('./pages/MyNetwork').then((module) => ({ default: module.MyNetwork })));
@@ -72,6 +74,9 @@ function AppRoutes() {
         >
           <Route index element={<Feed />} />
           <Route path="feed" element={<Navigate to="/app" replace />} />
+          <Route path="messages" element={<Messages />} />
+          <Route path="messages/:conversationId" element={<Messages />} />
+          <Route path="ai-chat" element={<BondlyAI />} />
           <Route path="overview" element={<Dashboard />} />
           <Route path="discover" element={<Discover />} />
           <Route path="recommendations" element={<Recommendations />} />

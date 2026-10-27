@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, MapPin, UserPlus, UserCheck, Clock } from 'lucide-react';
+import { AlertCircle, ArrowLeft, MapPin, UserPlus, UserCheck, Clock, MessageCircle } from 'lucide-react';
 import { Avatar, Button, Card, EmptyState, Spinner } from '../components/ui';
 import { useAuth } from '../context/useAuth';
 import { supabase } from '../lib/supabase';
@@ -173,6 +173,9 @@ export function ProfileView() {
           </div>
           {!isSelf && (
             <div>
+              <Link to={`/app/messages?to=${person.id}`} className="btn-secondary mb-2 inline-flex items-center gap-2">
+                <MessageCircle size={16} /> Message
+              </Link>
               {connectionState === 'none' && <Button onClick={sendRequest} disabled={working}><UserPlus size={16} />Connect</Button>}
               {connectionState === 'sent' && <Button variant="secondary" onClick={cancelRequest} disabled={working}><Clock size={16} />Cancel request</Button>}
               {connectionState === 'received' && <Button onClick={acceptRequest} disabled={working}><UserCheck size={16} />Accept request</Button>}

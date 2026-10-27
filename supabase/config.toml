@@ -1,0 +1,5 @@
+[functions.bondly-ai]
+verify_jwt = true
+
+[functions.bondly-turn]
+verify_jwt = true

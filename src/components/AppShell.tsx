@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   House, LayoutDashboard, Users, Sparkles, Network, Share2, UsersRound,
-  Bell, Bookmark, BarChart3, Settings, Shield, Menu, X, LogOut,
+  Bell, Bookmark, BarChart3, Settings, Shield, Menu, X, LogOut, MessageCircle, Bot,
   GitBranch, ScanSearch, Search, ScrollText,
 } from 'lucide-react';
 import { Logo, Avatar } from './ui';
@@ -11,6 +11,8 @@ import { supabase } from '../lib/supabase';
 
 const NAV = [
   { to: '/app', label: 'Home', icon: House, end: true },
+  { to: '/app/messages', label: 'Messages', icon: MessageCircle },
+  { to: '/app/ai-chat', label: 'Bondly AI', icon: Bot },
   { to: '/app/overview', label: 'Network Overview', icon: LayoutDashboard },
   { to: '/app/discover', label: 'Discover People', icon: Users },
   { to: '/app/recommendations', label: 'Friend Recommendations', icon: Sparkles },
