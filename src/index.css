@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-canvas text-navy-800 font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight text-navy-900;
+  }
+  *:focus-visible {
+    @apply outline-none ring-2 ring-indigo-400 ring-offset-2 ring-offset-white rounded-md;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-indigo-500 text-white hover:bg-indigo-600 active:bg-indigo-700 shadow-sm hover:shadow-md;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-navy-700 border border-navy-100 hover:border-indigo-200 hover:bg-indigo-50;
+  }
+  .btn-ghost {
+    @apply btn text-navy-600 hover:bg-navy-50 hover:text-navy-800;
+  }
+  .btn-success {
+    @apply btn bg-success-400 text-white hover:bg-success-500;
+  }
+  .btn-danger {
+    @apply btn bg-error-300 text-white hover:bg-error-400;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-navy-50 shadow-card;
+  }
+  .input-field {
+    @apply w-full rounded-xl border border-navy-100 bg-white px-4 py-2.5 text-sm text-navy-800 placeholder:text-muted transition-all focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-indigo { @apply badge bg-indigo-50 text-indigo-600; }
+  .badge-success { @apply badge bg-success-50 text-success-500; }
+  .badge-navy { @apply badge bg-navy-50 text-navy-500; }
+  .badge-warning { @apply badge bg-warning-50 text-warning-500; }
+  .badge-muted { @apply badge bg-gray-100 text-muted; }
+}
+
+/* React Flow theme overrides */
+.react-flow__node {
+  font-family: 'Inter', sans-serif;
+}
+.react-flow__controls button {
+  @apply border-navy-100 bg-white text-navy-700;
+  border-bottom: 1px solid #D6DEF2;
+}
+.react-flow__controls button:hover {
+  @apply bg-navy-50;
+}
+.react-flow__attribution {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-navy-100 rounded-full border-2 border-white;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-navy-200;
+}
