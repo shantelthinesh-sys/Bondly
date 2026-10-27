@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Sparkles, Network, Share2, BookOpen,
+  LayoutDashboard, Users, Sparkles, Network, Share2, BookOpen, MessageCircle,
   Bell, Bookmark, BarChart3, Settings, Shield, Menu, X, LogOut,
   Search, GitBranch, ScanSearch, ScrollText,
 } from 'lucide-react';
@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabase';
 
 const NAV = [
   { to: '/app', label: 'Overview', icon: LayoutDashboard, end: true },
+  { to: '/app/feed', label: 'Community Feed', icon: MessageCircle },
   { to: '/app/discover', label: 'Discover People', icon: Users },
   { to: '/app/recommendations', label: 'AI Recommendations', icon: Sparkles },
   { to: '/app/network', label: 'My Network', icon: Network },

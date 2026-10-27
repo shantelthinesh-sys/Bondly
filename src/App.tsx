@@ -11,6 +11,7 @@ const SignUp = lazy(() => import('./pages/SignUp').then((module) => ({ default: 
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then((module) => ({ default: module.ForgotPassword })));
 const Onboarding = lazy(() => import('./pages/Onboarding').then((module) => ({ default: module.Onboarding })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((module) => ({ default: module.Dashboard })));
+const Feed = lazy(() => import('./pages/Feed').then((module) => ({ default: module.Feed })));
 const Discover = lazy(() => import('./pages/Discover').then((module) => ({ default: module.Discover })));
 const Recommendations = lazy(() => import('./pages/Recommendations').then((module) => ({ default: module.Recommendations })));
 const MyNetwork = lazy(() => import('./pages/MyNetwork').then((module) => ({ default: module.MyNetwork })));
@@ -70,6 +71,7 @@ function AppRoutes() {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="feed" element={<Feed />} />
           <Route path="discover" element={<Discover />} />
           <Route path="recommendations" element={<Recommendations />} />
           <Route path="network" element={<MyNetwork />} />
